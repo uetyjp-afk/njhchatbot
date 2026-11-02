@@ -1,0 +1,1596 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#1a365d">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="NJH業務アシスト">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="description" content="Beltone / Unitron 書類・マニュアル検索（NJH連携）">
+    <link rel="manifest" href="./manifest.json">
+    <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="./icons/icon-512.png">
+    <title>NJHチャットボット</title>
+    <style>
+        :root {
+            --primary: #1a365d;
+            --primary-light: #2b6cb0;
+            --accent: #3182ce;
+            --bg: #f0f4f8;
+            --card: #ffffff;
+            --text: #1a202c;
+            --muted: #718096;
+            --border: #e2e8f0;
+            --success: #38a169;
+            --hover: #2c5282;
+            --beltone: #2b6cb0;
+            --beltone-bg: #ebf8ff;
+            --beltone-bg2: #e3f2ff;
+            --unitron: #dd6b20;
+            --unitron-bg: #fffaf0;
+            --unitron-bg2: #feebc8;
+            --common: #4a5568;
+            --common-bg: #f7fafc;
+            --common-bg2: #edf2f7;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+            background: linear-gradient(160deg, #e8f0fe 0%, #f0f4f8 50%, #edf2f7 100%);
+            color: var(--text);
+            min-height: 100vh;
+            padding: 24px 16px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 720px;
+            margin: 0 auto;
+            background: var(--card);
+            padding: 36px 32px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(26, 54, 93, 0.08), 0 2px 8px rgba(0,0,0,0.04);
+            border-top: 5px solid var(--primary);
+        }
+        h1 {
+            font-size: 1.5rem;
+            color: var(--primary);
+            text-align: center;
+            margin-bottom: 6px;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+        }
+        .subtitle {
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.9rem;
+            margin-bottom: 32px;
+        }
+        .step {
+            margin-bottom: 28px;
+        }
+        .step h2 {
+            font-size: 1.05rem;
+            color: var(--primary);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .step-num {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            font-size: 0.85rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        select {
+            width: 100%;
+            padding: 14px 16px;
+            font-size: 1rem;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            background-color: #fff;
+            color: var(--text);
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%234a5568' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            cursor: pointer;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        select:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.15);
+        }
+        select:hover {
+            border-color: #a0aec0;
+        }
+        #answerBox {
+            background: linear-gradient(135deg, #ebf8ff 0%, #f0fff4 100%);
+            border: 1.5px solid #90cdf4;
+            padding: 24px;
+            border-radius: 12px;
+            margin-top: 8px;
+            animation: fadeIn 0.35s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        #answerBox h2 {
+            color: var(--primary-light);
+            margin: 0 0 16px 0;
+            font-size: 1.15rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        #answerBox h2::before {
+            content: "🔗";
+            font-size: 1.1rem;
+        }
+        #answerText {
+            line-height: 1.9;
+            font-size: 1.02rem;
+        }
+        #answerText a {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #fff;
+            color: var(--primary-light);
+            text-decoration: none;
+            padding: 10px 14px;
+            border-radius: 8px;
+            margin: 4px 6px 8px 0;
+            border: 1.5px solid #bee3f8;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        #answerText a:hover {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(49, 130, 206, 0.25);
+        }
+        #answerText a::after {
+            content: "↗";
+            font-size: 0.85em;
+            opacity: 0.7;
+        }
+        .note {
+            font-size: 0.88rem;
+            color: var(--muted);
+            margin-bottom: 12px;
+            padding: 8px 12px;
+            background: rgba(255,255,255,0.7);
+            border-radius: 6px;
+        }
+        .reset-btn {
+            width: 100%;
+            padding: 14px;
+            font-size: 1rem;
+            border: none;
+            border-radius: 10px;
+            background: #718096;
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 20px;
+            transition: background 0.2s, transform 0.15s;
+        }
+        .reset-btn:hover {
+            background: #4a5568;
+            transform: translateY(-1px);
+        }
+        .top-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 12px;
+        }
+        .home-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 9px 16px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            border: 1.5px solid var(--border);
+            border-radius: 999px;
+            background: #fff;
+            color: var(--primary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .home-btn:hover {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+            transform: translateY(-1px);
+        }
+        .hidden {
+            display: none !important;
+        }
+        .footer-note {
+            text-align: center;
+            margin-top: 28px;
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+        .footer-note a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+        .footer-note a:hover {
+            text-decoration: underline;
+        }
+        /* パーツ検索 */
+        .parts-section {
+            margin-top: 36px;
+            padding-top: 28px;
+            border-top: 2px dashed var(--border);
+        }
+        .parts-section h2 {
+            font-size: 1.15rem;
+            color: var(--primary);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .parts-input-wrap {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+        .parts-input-wrap input {
+            flex: 1;
+            padding: 13px 14px;
+            font-size: 1rem;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            outline: none;
+        }
+        .parts-input-wrap input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.15);
+        }
+        .parts-input-wrap button {
+            padding: 13px 18px;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+        .parts-input-wrap button:hover {
+            background: var(--hover);
+        }
+        .parts-hint {
+            font-size: 0.82rem;
+            color: var(--muted);
+            margin-bottom: 16px;
+        }
+        .parts-result {
+            display: none;
+        }
+        .parts-result.show {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        .part-card {
+            background: #fff;
+            border: 1.5px solid var(--border);
+            border-left: 6px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+        .part-card:hover {
+            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+        }
+        .part-card-beltone {
+            border-left-color: var(--beltone);
+            background: linear-gradient(to right, var(--beltone-bg) 0%, #fff 10%);
+        }
+        .part-card-beltone:hover {
+            border-color: var(--beltone);
+            border-left-color: var(--beltone);
+        }
+        .part-card-unitron {
+            border-left-color: var(--unitron);
+            background: linear-gradient(to right, var(--unitron-bg) 0%, #fff 10%);
+        }
+        .part-card-unitron:hover {
+            border-color: var(--unitron);
+            border-left-color: var(--unitron);
+        }
+        .part-card-common {
+            border-left-color: var(--common);
+            background: linear-gradient(to right, var(--common-bg) 0%, #fff 10%);
+        }
+        .part-card-common:hover {
+            border-color: var(--common);
+            border-left-color: var(--common);
+        }
+        .part-card .brand {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 999px;
+            margin-bottom: 8px;
+            letter-spacing: 0.02em;
+        }
+        .brand-beltone {
+            background: var(--beltone);
+            color: #fff;
+        }
+        .brand-unitron {
+            background: var(--unitron);
+            color: #fff;
+        }
+        .brand-common {
+            background: var(--common);
+            color: #fff;
+        }
+        .part-card .cat-tag {
+            display: inline-block;
+            font-size: 0.72rem;
+            color: var(--muted);
+            background: #f1f5f9;
+            padding: 2px 8px;
+            border-radius: 6px;
+            margin-left: 6px;
+        }
+        .part-card .name {
+            font-weight: 600;
+            font-size: 1.02rem;
+            margin-bottom: 4px;
+        }
+        .part-card .note {
+            font-size: 0.85rem;
+            color: var(--muted);
+            margin: 0 0 10px 0;
+            padding: 0;
+            background: none;
+        }
+        .part-card .ask-btn {
+            width: 100%;
+            padding: 10px;
+            background: #edf2f7;
+            border: 1.5px solid #cbd5e0;
+            border-radius: 8px;
+            font-weight: 600;
+            color: var(--primary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .part-card-beltone .ask-btn:hover {
+            background: var(--beltone);
+            color: #fff;
+            border-color: var(--beltone);
+        }
+        .part-card-unitron .ask-btn:hover {
+            background: var(--unitron);
+            color: #fff;
+            border-color: var(--unitron);
+        }
+        .price-box {
+            margin-top: 10px;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            display: none;
+        }
+        .price-box.show {
+            display: block;
+            animation: fadeIn 0.25s ease;
+        }
+        .price-box-beltone {
+            background: var(--beltone-bg2);
+        }
+        .price-box-unitron {
+            background: var(--unitron-bg2);
+        }
+        .price-box-common {
+            background: var(--common-bg2);
+        }
+        .price-box .price {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        .price-box-beltone .price {
+            color: var(--beltone);
+        }
+        .price-box-unitron .price {
+            color: var(--unitron);
+        }
+        .price-box-common .price {
+            color: var(--common);
+        }
+        .price-box .tax {
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+        .brand-legend {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-bottom: 14px;
+            font-size: 0.82rem;
+            color: var(--muted);
+        }
+        .brand-legend span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .brand-legend .dot {
+            width: 11px;
+            height: 11px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+        .dot-beltone { background: var(--beltone); }
+        .dot-unitron { background: var(--unitron); }
+        .dot-common { background: var(--common); }
+        .parts-input-wrap {
+            position: relative;
+        }
+        .parts-suggest {
+            display: none;
+            position: absolute;
+            top: calc(100% + 4px);
+            left: 0;
+            right: 84px;
+            background: #fff;
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+            max-height: 320px;
+            overflow-y: auto;
+            z-index: 20;
+        }
+        .parts-suggest.show {
+            display: block;
+        }
+        .suggest-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            cursor: pointer;
+            border-bottom: 1px solid #f1f5f9;
+        }
+        .suggest-item:last-child {
+            border-bottom: none;
+        }
+        .suggest-item:hover, .suggest-item.active {
+            background: #f7fafc;
+        }
+        .suggest-item .dot {
+            width: 9px;
+            height: 9px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .suggest-item .s-name {
+            font-size: 0.92rem;
+            color: var(--text);
+            flex: 1;
+        }
+        .suggest-item .s-cat {
+            font-size: 0.75rem;
+            color: var(--muted);
+        }
+        @media (max-width: 480px) {
+            .parts-suggest { right: 0; }
+        }
+        .no-result {
+            text-align: center;
+            color: var(--muted);
+            padding: 20px;
+            font-size: 0.95rem;
+        }
+        @media (max-width: 480px) {
+            .container {
+                padding: 24px 18px;
+            }
+            h1 {
+                font-size: 1.3rem;
+            }
+            #answerText a {
+                display: flex;
+                width: 100%;
+                justify-content: space-between;
+            }
+            .parts-input-wrap {
+                flex-direction: column;
+            }
+        }
+
+        /* ===== 修理可否チェック ===== */
+        .rc-brand-btns { display:flex; gap:10px; margin-bottom:14px; }
+        .rc-brand-btn {
+            flex:1; padding:13px 10px; font-size:1rem; font-weight:700;
+            border:2px solid var(--border); border-radius:10px; background:#fff;
+            color:var(--muted); cursor:pointer; transition:all .2s;
+        }
+        .rc-brand-btn.beltone { border-color:var(--beltone); color:var(--beltone); }
+        .rc-brand-btn.unitron { border-color:var(--unitron); color:var(--unitron); }
+        .rc-brand-btn.beltone.active { background:var(--beltone); color:#fff; }
+        .rc-brand-btn.unitron.active { background:var(--unitron); color:#fff; }
+        .rc-input-wrap { position:relative; display:flex; gap:8px; margin-bottom:14px; }
+        .rc-input-wrap input {
+            flex:1; min-width:0; padding:13px 14px; font-size:1rem;
+            border:1.5px solid var(--border); border-radius:10px; outline:none;
+        }
+        .rc-input-wrap input:disabled { background:#f1f5f9; }
+        .rc-input-wrap input:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(49,130,206,.15); }
+        .rc-input-wrap.beltone input:focus { border-color:var(--beltone); box-shadow:0 0 0 3px rgba(43,108,176,.18); }
+        .rc-input-wrap.unitron input:focus { border-color:var(--unitron); box-shadow:0 0 0 3px rgba(221,107,32,.18); }
+        .rc-input-wrap button {
+            padding:13px 18px; background:var(--primary); color:#fff; border:none;
+            border-radius:10px; font-weight:600; cursor:pointer; white-space:nowrap;
+        }
+        .rc-input-wrap.beltone button { background:var(--beltone); }
+        .rc-input-wrap.unitron button { background:var(--unitron); }
+        .rc-input-wrap button:disabled { background:#a0aec0; cursor:not-allowed; }
+        .rc-suggest {
+            display:none; position:absolute; top:calc(100% + 4px); left:0; right:0;
+            background:#fff; border:1.5px solid var(--border); border-radius:10px;
+            box-shadow:0 8px 24px rgba(0,0,0,.12); max-height:300px; overflow-y:auto; z-index:20;
+        }
+        .rc-suggest.show { display:block; }
+        .rc-result { display:none; }
+        .rc-result.show { display:block; animation:fadeIn .3s ease; }
+        .rc-count { font-size:.82rem; color:var(--muted); margin-bottom:10px; }
+        .rc-card {
+            border:1.5px solid var(--border); border-left-width:6px; border-radius:10px;
+            padding:12px 14px; margin-bottom:10px; background:#fff;
+        }
+        .rc-card-beltone { border-left-color:var(--beltone); background:linear-gradient(to right,var(--beltone-bg) 0%,#fff 12%); }
+        .rc-card-unitron { border-left-color:var(--unitron); background:linear-gradient(to right,var(--unitron-bg) 0%,#fff 12%); }
+        .rc-name { font-weight:700; font-size:1rem; color:var(--text); }
+        .rc-type { font-size:.75rem; color:var(--muted); margin-left:6px; font-weight:400; }
+        .rc-badge {
+            display:inline-block; margin:8px 0 6px; padding:4px 10px; border-radius:999px;
+            font-size:.82rem; font-weight:700;
+        }
+        .rc-badge.expired { background:#fed7d7; color:#9b2c2c; }
+        .rc-badge.thismonth { background:#feebc8; color:#9c4221; }
+        .rc-badge.upcoming { background:#fefcbf; color:#744210; }
+        .rc-dates { font-size:.85rem; color:var(--muted); }
+        .rc-notfound {
+            padding:14px; border:1.5px dashed var(--border); border-radius:10px;
+            background:#f7fafc; font-size:.92rem; color:var(--text);
+        }
+        .rc-pdf { display:inline-block; margin-top:6px; color:var(--accent); font-weight:600; font-size:.88rem; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="top-actions">
+        <button type="button" class="home-btn" onclick="resetAll()">🏠 最初に戻る</button>
+    </div>
+    <h1>NJHチャットボット</h1>
+    <div class="subtitle">Beltone / Unitron 書類・マニュアル検索（NJH連携）</div>
+
+    <div class="step" id="step1">
+        <h2><span class="step-num">1</span> お困り事はなんですか？</h2>
+        <select id="categorySelect">
+            <option value="">-- 選択してください --</option>
+            <option value="order_custom">注文書：オーダーメイド（耳あな型・モールド）</option>
+            <option value="order_ric">注文書：耳かけ型（RIC / BTE）</option>
+            <option value="repair">依頼書：修理・再作・保証関連</option>
+            <option value="catalog">カタログ：総合カタログ・パーツ・支援法</option>
+            <option value="manual">お客様用：かんたんガイド（タイプ別）</option>
+            <option value="trouble">調整・サポート：ペアリング・トラブル対応</option>
+        </select>
+    </div>
+
+    <div class="step hidden" id="step2">
+        <h2><span class="step-num">2</span> 具体的なファイルを選んでください</h2>
+        <select id="questionSelect">
+            <option value="">-- 選択してください --</option>
+        </select>
+    </div>
+
+    <div id="answerBox" class="hidden">
+        <h2>ダイレクトリンク</h2>
+        <div id="answerText">ここに回答が表示されます。</div>
+        <button class="reset-btn" onclick="resetApp()">別のファイルを探す</button>
+    </div>
+
+    <!-- 修理可否チェックセクション -->
+    <div class="parts-section" id="repairCheck">
+        <h2>🔧 修理可否チェック（修理不能器種）</h2>
+        <p class="parts-hint">メーカーを選んで機種名を入力すると、修理不能かどうか確認できます（例：レジェンド、モクシー、ストライド 500）</p>
+        <div class="rc-brand-btns">
+            <button type="button" class="rc-brand-btn beltone" data-brand="Beltone">🔵 Beltone</button>
+            <button type="button" class="rc-brand-btn unitron" data-brand="Unitron">🟠 Unitron</button>
+        </div>
+        <div class="rc-input-wrap" id="rcInputWrap">
+            <input type="text" id="rcQuery" placeholder="先にメーカーを選んでください" autocomplete="off" disabled>
+            <button type="button" id="rcSearchBtn" disabled>確認</button>
+            <div id="rcSuggest" class="rc-suggest"></div>
+        </div>
+        <div id="rcResult" class="rc-result"></div>
+        <p class="parts-hint" style="margin-top:12px;">
+            出典：<a href="https://www.njha.co.jp/uploads/2026.6%20%E4%BF%AE%E7%90%86%E4%B8%8D%E8%83%BD%E5%99%A8%E7%A8%AE%E4%B8%80%E8%A6%A7%E8%A1%A8.pdf" target="_blank" rel="noopener" class="rc-pdf" style="margin-top:0;">修理不能器種一覧表（2026年6月現在・PDF）</a><br>
+            ※ 修理期間満了日と今日の日付を比べて自動判定しています。推奨後継器種はPDFをご確認ください。
+        </p>
+    </div>
+
+    <!-- パーツ検索セクション -->
+    <div class="parts-section">
+        <h2>🔩 パーツ・アクセサリー検索</h2>
+        <p class="parts-hint">キーワードを入力すると近いパーツを提案します（例：リモコン、充電器、マイク、レシーバー…）</p>
+        <div class="brand-legend">
+            <span><span class="dot dot-beltone"></span>青 = Beltone（B〜）</span>
+            <span><span class="dot dot-unitron"></span>オレンジ = Unitron（U〜）</span>
+            <span><span class="dot dot-common"></span>グレー = 共通部品</span>
+        </div>
+        <div class="parts-input-wrap">
+            <input type="text" id="partsQuery" placeholder="例：リモコン / 充電器 / ボイスリンク" autocomplete="off">
+            <button type="button" id="partsSearchBtn">検索</button>
+            <div id="partsSuggest" class="parts-suggest"></div>
+        </div>
+        <div id="partsResult" class="parts-result"></div>
+        <p class="parts-hint" style="margin-top:12px;">
+            詳細・最新価格は
+            <a href="https://www.njha.co.jp/uploads/2026%E5%B9%B45%E6%9C%88_%E3%83%91%E3%83%BC%E3%83%84%E3%82%AB%E3%82%BF%E3%83%AD%E3%82%B0%E3%80%90%E4%B8%8A%E4%BB%A3%E3%80%91%20.pdf" target="_blank" rel="noopener" style="color:var(--accent);font-weight:600;">パーツカタログ (PDF・2026年5月版)</a>
+            をご確認ください。
+        </p>
+    </div>
+
+    <div class="footer-note">
+        リンク先：<a href="https://www.njha.co.jp/dealers/" target="_blank" rel="noopener">NJH 販売店向け資料ページ</a>
+    </div>
+</div>
+
+<script>
+    const BASE = "https://www.njha.co.jp";
+    const faqData = {
+        "order_custom": {
+            "q1": {
+                text: "補聴器オーダーシート (PDF / Excel)",
+                answer: `<div class="note">最新版（2026年4月更新）</div>
+                    <a href="${BASE}/uploads/202604_%E3%82%AA%E3%83%BC%E3%83%80%E3%83%BC%E3%82%B7%E3%83%BC%E3%83%88_2.pdf" target="_blank" rel="noopener">補聴器オーダーシート (PDF)</a>
+                    <a href="${BASE}/uploads/202604_ordersheet.xlsx" target="_blank" rel="noopener">補聴器オーダーシート (Excel)</a>`
+            },
+            "q2": {
+                text: "Beltone 充電式オーダーメイド注文書",
+                answer: `<a href="${BASE}/uploads/202503_Beltone_order.pdf" target="_blank" rel="noopener">Beltone 充電式オーダーメイド注文書 (PDF)</a>`
+            },
+            "q3": {
+                text: "Unitron 充電式オーダーメイド注文書",
+                answer: `<a href="${BASE}/uploads/202604_InseraS-R.pdf" target="_blank" rel="noopener">Unitron 充電式オーダーメイド注文書 (PDF)</a>`
+            },
+            "q4": {
+                text: "イヤーモールド注文書 (PDF / Excel)",
+                answer: `<a href="${BASE}/uploads/%E3%83%9B%E3%83%BC%E3%83%A0%E3%83%9A%E3%83%BC%E3%82%B8_%E3%82%A4%E3%83%A4%E3%83%BC%E3%83%A2%E3%83%BC%E3%83%AB%E3%83%89%E6%B3%A8%E6%96%87%E6%9B%B8.pdf" target="_blank" rel="noopener">イヤーモールド注文書 (PDF)</a>
+                    <a href="${BASE}/uploads/20260826_%E3%82%A4%E3%83%A4%E3%83%BC%E3%83%A2%E3%83%BC%E3%83%AB%E3%83%89%E6%B3%A8%E6%96%87%E6%9B%B8.xlsx" target="_blank" rel="noopener">イヤーモールド注文書 (Excel)</a>`
+            },
+            "q5": {
+                text: "RICモールド注文書 (Beltone / Unitron)",
+                answer: `<a href="${BASE}/uploads/202511_bel_mold.pdf" target="_blank" rel="noopener">Beltone RICモールド注文書</a>
+                    <a href="${BASE}/uploads/202602_uni_mold.pdf" target="_blank" rel="noopener">Unitron RICモールド注文書</a>`
+            }
+        },
+        "order_ric": {
+            "q1": {
+                text: "Beltone 耳かけ型注文書",
+                answer: `<div class="note">対象機種をクリックしてください</div>
+                    <a href="${BASE}/uploads/202508_Beltone_Envision_62s_64.pdf" target="_blank" rel="noopener">Beltone Envision RIC 注文書</a>
+                    <a href="${BASE}/uploads/202609_Beltone_Commence_62_64.pdf" target="_blank" rel="noopener">Beltone Commence RIC 注文書</a>
+                    <a href="${BASE}/uploads/202503_Beltone_Serene_62_63.pdf" target="_blank" rel="noopener">Beltone Serene RIC 注文書</a>
+                    <a href="${BASE}/uploads/202503_Beltone_Serene_BTE.pdf" target="_blank" rel="noopener">Beltone Serene BTE 注文書</a>
+                    <a href="${BASE}/uploads/202405_Beltone_Serene_Cros.pdf" target="_blank" rel="noopener">Beltone Serene CROS 注文書</a>
+                    <a href="${BASE}/uploads/202310_Beltone_Achieve_mini+_nonUP_umekomi_01.pdf" target="_blank" rel="noopener">Beltone Achieve RIC 注文書</a>
+                    <a href="${BASE}/uploads/202412_Beltone_Achieve_BTE.pdf" target="_blank" rel="noopener">Beltone Achieve BTE 注文書</a>
+                    <a href="${BASE}/uploads/202412_Beltone_Rely_RIC.pdf" target="_blank" rel="noopener">Beltone Rely RIC 注文書</a>
+                    <a href="${BASE}/uploads/123_202601_Beltone_Rely_BTE.pdf" target="_blank" rel="noopener">Beltone Rely BTE 注文書</a>
+                    <a href="${BASE}/uploads/202412_Beltone_AmazeBTE.pdf" target="_blank" rel="noopener">Beltone Amaze BTE 注文書</a>
+                    <a href="${BASE}/uploads/%E3%83%96%E3%83%BC%E3%82%B9%E3%83%88%E3%83%9E%E3%83%83%E3%82%AF%E3%82%B9S.pdf" target="_blank" rel="noopener">Beltone Boost Max S 注文書</a>
+                    <a href="${BASE}/uploads/202412_Beltone_BoostUltra.pdf" target="_blank" rel="noopener">Beltone Boost Ultra 注文書</a>`
+            },
+            "q2": {
+                text: "Unitron 耳かけ型注文書",
+                answer: `<div class="note">対象機種をクリックしてください</div>
+                    <a href="${BASE}/uploads/202604_Moxi_S-R.pdf" target="_blank" rel="noopener">Unitron Moxi Smile RIC 注文書</a>
+                    <a href="${BASE}/uploads/202603_Ativo.pdf" target="_blank" rel="noopener">Unitron Ativo 注文書</a>
+                    <a href="${BASE}/uploads/202603_Moxi%20V-R_312_RS.pdf" target="_blank" rel="noopener">Unitron Moxi Vivante RIC 注文書</a>
+                    <a href="${BASE}/uploads/202405_Stride_V_PR.pdf" target="_blank" rel="noopener">Unitron Stride Vivante PR 注文書</a>
+                    <a href="${BASE}/uploads/202510_Stride_V_SP_UP.pdf" target="_blank" rel="noopener">Unitron Stride Vivante SP/UP 注文書</a>
+                    <a href="${BASE}/uploads/202603_Moxi%20B-R_312.pdf" target="_blank" rel="noopener">Unitron Moxi Blu RIC 注文書</a>
+                    <a href="${BASE}/uploads/202506_Welfare.pdf" target="_blank" rel="noopener">総合支援法補聴器 注文書</a>`
+            }
+        },
+        "repair": {
+            "q1": {
+                text: "修理依頼書 / 再作依頼書など",
+                answer: `<div class="note">印刷してお使いください（修理依頼書は2026年4月新版）</div>
+                    <a href="${BASE}/uploads/202604_%E4%BF%AE%E7%90%86%E4%BE%9D%E9%A0%BC%E6%9B%B8.pdf" target="_blank" rel="noopener">補聴器 修理依頼書</a>
+                    <a href="${BASE}/uploads/_10.pdf" target="_blank" rel="noopener">オーダーメイド再作依頼書</a>`
+            },
+            "q2": {
+                text: "安心ほしょう / 紛失保証 注文書",
+                answer: `<a href="${BASE}/uploads/202604_%E5%AE%89%E5%BF%83%E3%81%BB%E3%81%97%E3%82%87%E3%81%86%E6%B3%A8%E6%96%87%E6%9B%B8.pdf" target="_blank" rel="noopener">安心ほしょう注文書</a>
+                    <a href="${BASE}/uploads/20241015_funshitsuhoshou_order.pdf" target="_blank" rel="noopener">補聴器紛失保証専用注文書</a>`
+            },
+            "q3": {
+                text: "修理不能器種一覧表（2026年6月）",
+                answer: `<div class="note">機種名での確認は、下の「修理可否チェック」が便利です</div>
+                    <a href="https://www.njha.co.jp/uploads/2026.6%20%E4%BF%AE%E7%90%86%E4%B8%8D%E8%83%BD%E5%99%A8%E7%A8%AE%E4%B8%80%E8%A6%A7%E8%A1%A8.pdf" target="_blank" rel="noopener">修理不能器種一覧表 (PDF・2026.6)</a>`
+            }
+        },
+        "catalog": {
+            "q1": {
+                text: "Beltone / Unitron 総合カタログ",
+                answer: `<div class="note">最新版を掲載しています</div>
+                    <a href="${BASE}/uploads/202604_%E3%83%99%E3%83%AB%E3%83%88%E3%83%BC%E3%83%B3%E7%B7%8F%E5%90%88%E3%82%AB%E3%82%BF%E3%83%AD%E3%82%B0.pdf" target="_blank" rel="noopener">Beltone 総合カタログ (2026.4)</a>
+                    <a href="${BASE}/uploads/%E3%83%A6%E3%83%8B%E3%83%88%E3%83%AD%E3%83%B3%E7%B7%8F%E5%90%88%E3%82%AB%E3%82%BF%E3%83%AD%E3%82%B0202606.pdf" target="_blank" rel="noopener">Unitron 総合カタログ</a>`
+            },
+            "q2": {
+                text: "アクセサリーパーツ / 総合支援法カタログ",
+                answer: `<a href="${BASE}/uploads/2026_%E3%83%91%E3%83%BC%E3%83%84%E3%82%AB%E3%82%BF%E3%83%AD%E3%82%B0-%E5%9C%A7%E7%B8%AE%20%282%29_1.pdf" target="_blank" rel="noopener">アクセサリーパーツカタログ</a>
+                    <a href="${BASE}/uploads/%E7%A6%8F%E7%A5%89%E3%82%AB%E3%82%BF%E3%83%AD%E3%82%B0_202605.pdf" target="_blank" rel="noopener">補聴器総合支援法 カタログ</a>`
+            }
+        },
+        "manual": {
+            "q1": {
+                text: "タイプ別 かんたんガイド（お客様お渡し用）",
+                answer: `<div class="note">お客様にお渡しする印刷用データです</div>
+                    <a href="${BASE}/uploads/RIC%E7%94%A8%E3%81%8B%E3%82%93%E3%81%9F%E3%82%93%E3%82%AC%E3%82%A4%E3%83%89_1.pdf" target="_blank" rel="noopener">RIC用 かんたんガイド</a>
+                    <a href="${BASE}/uploads/BTE%E7%94%A8%E3%81%8B%E3%82%93%E3%81%9F%E3%82%93%E3%82%AC%E3%82%A4%E3%83%89.pdf" target="_blank" rel="noopener">BTE用 かんたんガイド</a>
+                    <a href="${BASE}/uploads/%E8%80%B3%E3%81%82%E3%81%AA%E5%9E%8B%E3%81%8B%E3%82%93%E3%81%9F%E3%82%93%E3%82%AC%E3%82%A4%E3%83%89.pdf" target="_blank" rel="noopener">耳あな用 かんたんガイド</a>`
+            },
+            "q2": {
+                text: "機種別 かんたんガイド（Beltone）",
+                answer: `<a href="${BASE}/uploads/202604_BoostMax_S_Kantan_Guide.pdf" target="_blank" rel="noopener">Beltone Boost Max S</a>
+                    <a href="${BASE}/uploads/202508_Envision_Kantan_guide.pdf" target="_blank" rel="noopener">Beltone Envision RIC</a>
+                    <a href="${BASE}/uploads/202508_Commence_kantan_guide.pdf" target="_blank" rel="noopener">Beltone Commence RIC</a>
+                    <a href="${BASE}/uploads/202404_Serene_Kantan_Guide.pdf" target="_blank" rel="noopener">Beltone Serene RIC</a>
+                    <a href="${BASE}/uploads/202310_Achieve_order_Kantan_Guide.pdf" target="_blank" rel="noopener">Beltone Achieve 充電式オーダーメイド</a>
+                    <a href="${BASE}/uploads/202310_Achieve_BTE_Kantan_Guide.pdf" target="_blank" rel="noopener">Beltone Achieve BTE</a>
+                    <a href="${BASE}/uploads/202206_Rely_kantan_guide.pdf" target="_blank" rel="noopener">Beltone Rely RIC</a>
+                    <a href="${BASE}/uploads/202404_Amaze_Plemium_usbc_kantan_guide.pdf" target="_blank" rel="noopener">Beltone Amaze RIC</a>`
+            },
+            "q3": {
+                text: "機種別 かんたんガイド（Unitron）",
+                answer: `<a href="${BASE}/uploads/202604_Insera_S-R_Kantan_Guide.pdf" target="_blank" rel="noopener">Unitron Insera Smile R</a>
+                    <a href="${BASE}/uploads/202608_Moxi_Smile_R_chargerGO_kantan_guide.pdf" target="_blank" rel="noopener">Unitron Moxi Smile R (ChargerGo用)</a>
+                    <a href="${BASE}/uploads/202606_Moxi_Smile_R_kantan_guide.pdf" target="_blank" rel="noopener">Unitron Moxi Smile R (蓄電なし)</a>
+                    <a href="${BASE}/uploads/202309_Moxi_Vivante_R_kantan_guide.pdf" target="_blank" rel="noopener">Unitron Moxi Vivante R</a>
+                    <a href="${BASE}/uploads/202309_Moxi_Vivante_RS_kantan_guide.pdf" target="_blank" rel="noopener">Unitron Moxi Vivante RS</a>
+                    <a href="${BASE}/uploads/202412_Moxi_Blu_kantan_guide.pdf" target="_blank" rel="noopener">Unitron Moxi Blu R</a>
+                    <a href="${BASE}/uploads/202404_StridePR_kantan_guide.pdf" target="_blank" rel="noopener">Unitron Stride PR</a>`
+            }
+        },
+        "trouble": {
+            "q1": {
+                text: "ペアリングに関するQ&A (Beltone / Unitron)",
+                answer: `<div class="note">スマホ接続時のトラブルシューティングです</div>
+                    <a href="${BASE}/uploads/20240919_Beltone%E3%83%9A%E3%82%A2%E3%83%AA%E3%83%B3%E3%82%B0%E3%81%AB%E9%96%A2%E3%81%99%E3%82%8BQ%26A.pdf" target="_blank" rel="noopener">Beltone 携帯・アプリのペアリングQ&A</a>
+                    <a href="${BASE}/uploads/20240917_Unitron%20%E3%83%9A%E3%82%A2%E3%83%AA%E3%83%B3%E3%82%B0%E3%81%AB%E9%96%A2%E3%81%99%E3%82%8BQ%26A.pdf" target="_blank" rel="noopener">Unitron 携帯・アプリのペアリングQ&A</a>
+                    <a href="${BASE}/uploads/2023.05_Bluetooth_Troubleshooting.pdf" target="_blank" rel="noopener">Bluetooth設定のトラブルシューティング</a>`
+            },
+            "q2": {
+                text: "ケーブル対応表 / 保護回路・フライトモード",
+                answer: `<div class="note">調整時や設定の確認用マニュアルです</div>
+                    <a href="${BASE}/uploads/2024.04_Beltone_Cable.pdf" target="_blank" rel="noopener">Beltone ケーブル対応表</a>
+                    <a href="${BASE}/uploads/2024.04_unitron_cable_1.pdf" target="_blank" rel="noopener">Unitron ケーブル対応表</a>
+                    <a href="${BASE}/uploads/%E3%80%90JUMP%E3%83%BBMove%E3%83%BBBlu%E3%80%91%E4%BF%9D%E8%AD%B7%E5%9B%9E%E8%B7%AF%E3%83%A2%E3%83%BC%E3%83%89%E8%A7%A3%E9%99%A4%E6%96%B9%E6%B3%95.pdf" target="_blank" rel="noopener">Jump・Move・Blu 保護回路モード解除</a>
+                    <a href="${BASE}/uploads/%E3%80%90Vivante%E3%80%91%E4%BF%9D%E8%AD%B7%E5%9B%9E%E8%B7%AF%E3%83%A2%E3%83%BC%E3%83%89%E8%A7%A3%E9%99%A4%E6%96%B9%E6%B3%95.pdf" target="_blank" rel="noopener">Vivante 保護回路モード解除</a>
+                    <a href="${BASE}/uploads/Fright_mode.pdf" target="_blank" rel="noopener">Beltone フライトモード切替について</a>
+                    <a href="${BASE}/uploads/2025.04_Unitron_flightmode.pdf" target="_blank" rel="noopener">Unitron フライトモード切替について</a>`
+            },
+            "q3": {
+                text: "アプリ・ワイヤレスアクセサリー ガイド",
+                answer: `<a href="${BASE}/uploads/2026.07_Correspondence%20table-1.pdf" target="_blank" rel="noopener">Beltone/Unitron ワイヤレス機器対応表</a>
+                    <a href="${BASE}/uploads/202604_HearMax4.pdf" target="_blank" rel="noopener">Beltone HearMax アプリ</a>
+                    <a href="${BASE}/uploads/2021.6HearPlus_guide.pdf" target="_blank" rel="noopener">Beltone HearPlus アプリ</a>
+                    <a href="${BASE}/uploads/2606_RemotePlus542_1.pdf" target="_blank" rel="noopener">Unitron RemotePlus アプリ (インセラスマイル)</a>
+                    <a href="${BASE}/uploads/2602_RemotePlus541_1.pdf" target="_blank" rel="noopener">Unitron RemotePlus アプリ (モクシースマイル以前)</a>
+                    <a href="${BASE}/uploads/202511_Android_RemotePlus.pdf" target="_blank" rel="noopener">Unitron RemotePlus アプリ（Android）</a>`
+            }
+        }
+    };
+
+    const categorySelect = document.getElementById('categorySelect');
+    const questionSelect = document.getElementById('questionSelect');
+    const step2 = document.getElementById('step2');
+    const answerBox = document.getElementById('answerBox');
+    const answerText = document.getElementById('answerText');
+
+    categorySelect.addEventListener('change', function() {
+        const category = this.value;
+        questionSelect.innerHTML = '<option value="">-- 選択してください --</option>';
+        answerBox.classList.add('hidden');
+
+        if (category && faqData[category]) {
+            for (const key in faqData[category]) {
+                const option = document.createElement('option');
+                option.value = key;
+                option.textContent = faqData[category][key].text;
+                questionSelect.appendChild(option);
+            }
+            step2.classList.remove('hidden');
+        } else {
+            step2.classList.add('hidden');
+        }
+    });
+
+    questionSelect.addEventListener('change', function() {
+        const category = categorySelect.value;
+        const questionKey = this.value;
+
+        if (questionKey && faqData[category] && faqData[category][questionKey]) {
+            answerText.innerHTML = faqData[category][questionKey].answer;
+            answerBox.classList.remove('hidden');
+        } else {
+            answerBox.classList.add('hidden');
+        }
+    });
+
+    function resetApp() {
+        categorySelect.value = "";
+        step2.classList.add('hidden');
+        answerBox.classList.add('hidden');
+        questionSelect.innerHTML = '<option value="">-- 選択してください --</option>';
+    }
+
+    function resetAll() {
+        resetApp();
+        if (typeof partsQuery !== 'undefined' && partsQuery) partsQuery.value = '';
+        if (typeof partsResult !== 'undefined' && partsResult) {
+            partsResult.innerHTML = '';
+            partsResult.classList.remove('show');
+        }
+        if (typeof resetRepairCheck === 'function') resetRepairCheck();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ========== パーツ検索（2026年5月版 パーツカタログ準拠） ==========
+    const catKeywords = {
+        "耳せん": "イヤチップ イヤーピース ドーム ear tip dome mold",
+        "ワックスガード": "ワックスフィルター フィルター wax guard filter",
+        "チューブ": "サウンドチューブ ジョイント tube joint",
+        "レシーバー": "receiver 受信機 スピーカー イヤホン部",
+        "レシーバー部品": "receiver parts ソケット ストッパー カバー 治具",
+        "フック": "hook イヤフック 耳かけ",
+        "充電器": "charger 充電 チャージャー バッテリー",
+        "ケーブル": "cable USB ケーブル コード アダプター",
+        "工具": "tool 工具 治具 ツール",
+        "ケース識別": "case マーカー 識別 収納",
+        "ピンカバー": "pin cover ピン カバー ボルト",
+        "オージオシュー": "audio shoe オージオシュー コード",
+        "バイクロス": "cros bicros クロス 対側",
+        "ポケット": "pocket ポケット型 箱型",
+        "ケア用品": "care クリーニング お手入れ",
+        "乾燥": "dry 乾燥剤 乾燥ケース dehumidifier 乾燥機",
+        "耳型材料": "impression material 印象材 耳型",
+        "測定具": "measurement 測定 検査",
+        "イヤモールド": "ear mold custom mold イヤーモールド 耳栓オーダー",
+        "RICモールド": "RIC mold RICモールド",
+        "無線機器": "wireless remote streamer リモコン ストリーマー",
+        "無線付属品": "wireless accessory cable adapter 付属品"
+    };
+
+    const partsDB = [
+        // ---- 備品 ベルトーン①（耳栓・チューブ・レシーバー・フック） ----
+        { id:"b1-01", brand:"Beltone", cat:"ワックスガード", name:"HF3 ワックスガード（左右各8ヶ 計16ヶ入）", price:2750 },
+        { id:"b1-02", brand:"Beltone", cat:"ワックスガード", name:"HF4 ワックスガード（左右別 16ヶ入）", price:3300, note:"赤と青あり" },
+        { id:"b1-03", brand:"Beltone", cat:"ワックスガード", name:"ワックスフィルター（8本入）", price:990 },
+        { id:"b1-04", brand:"Beltone", cat:"ワックスガード", name:"RIC用 マイクフィルター", price:1210, note:"Envision／Commence" },
+        { id:"b1-05", brand:"Beltone", cat:"ワックスガード", name:"MM用 マイクフィルター（8本入）", price:1210, note:"Envision／Serene／Achieve／Imagine" },
+        { id:"b1-06", brand:"Beltone", cat:"ワックスガード", name:"充電オーダー用マイクフィルター（4個入）", price:4400 },
+        { id:"b1-07", brand:"Beltone", cat:"耳せん", name:"RIC／スリムチューブ用 耳栓（10個入）", price:4400, note:"オープン／パワー／チューリップ／クローズ S・M・L" },
+        { id:"b1-08", brand:"Beltone", cat:"耳せん", name:"BTE用 耳せん（各）", price:220, note:"SS・S・M・L" },
+        { id:"b1-09", brand:"Beltone", cat:"チューブ", name:"ジョイントチューブ V3", price:110 },
+        { id:"b1-10", brand:"Beltone", cat:"チューブ", name:"ジョイント（V3のL字型プラスチック）", price:55 },
+        { id:"b1-11", brand:"Beltone", cat:"チューブ", name:"サウンドチューブ（細・1m）", price:220 },
+        { id:"b1-12", brand:"Beltone", cat:"チューブ", name:"サウンドチューブ（太・1m）", price:330 },
+        { id:"b1-13", brand:"Beltone", cat:"レシーバー", name:"LP／MP／HPレシーバー SF3", price:17600, note:"Envision／Commence／Serene／Achieve／Imagine・サイズ0〜4" },
+        { id:"b1-14", brand:"Beltone", cat:"レシーバー", name:"MMレシーバー SF3", price:37400, note:"Envision／Serene／Achieve／Imagine・サイズ0〜4" },
+        { id:"b1-15", brand:"Beltone", cat:"レシーバー", name:"LP／MP／HPレシーバー SF2", price:17600, note:"Amaze／Rely／Trust／Legend／Ally・サイズ0〜4" },
+        { id:"b1-16", brand:"Beltone", cat:"レシーバー", name:"旧ノーマルレシーバー（Promise／True／Origin以前）", price:17600, note:"Sレシーバー1〜4／NPレシーバー0〜3" },
+        { id:"b1-17", brand:"Beltone", cat:"レシーバー", name:"旧パワーレシーバー（Promise／True／Origin以前）", price:17600, note:"HP2レシーバー1〜4／HPレシーバー1〜3" },
+        { id:"b1-18", brand:"Beltone", cat:"レシーバー部品", name:"MMレシーバー用パーツ", price:220, note:"Envision／Serene／Achieve／Imagine" },
+        { id:"b1-19", brand:"Beltone", cat:"レシーバー部品", name:"LP／MP／HPレシーバー用パーツ", price:220, note:"Envision／Serene／Achieve／Imagine／Amaze／Rely／Trust／First／Legend／Ally" },
+        { id:"b1-20", brand:"Beltone", cat:"レシーバー部品", name:"S／NPレシーバー用パーツ（NP・HP・HP2共通）", price:220, note:"Promise／True／Origin" },
+        { id:"b1-21", brand:"Beltone", cat:"フック", name:"フック", price:440, note:"通常・チャイルド・ベビー" },
+        { id:"b1-22", brand:"Beltone", cat:"フック", name:"ダンパーフック", price:770, note:"通常・チャイルド・ベビー" },
+        { id:"b1-23", brand:"Beltone", cat:"フック", name:"メタルフック", price:4950, note:"Boost Max S／Rely 86" },
+        { id:"b1-24", brand:"Beltone", cat:"ピンカバー", name:"フック固定のピン", price:220 },
+        { id:"b1-25", brand:"Beltone", cat:"フック", name:"ダンパーセット", price:330 },
+        { id:"b1-26", brand:"Beltone", cat:"チューブ", name:"スリムチューブ", price:440 },
+        { id:"b1-27", brand:"Beltone", cat:"チューブ", name:"スリムチューブ用ジョイント", price:660 },
+
+        // ---- 備品 ベルトーン②（充電器・オージオシュー・その他） ----
+        { id:"b2-01", brand:"Beltone", cat:"充電器", name:"オーダーメイド充電器", price:33000, note:"Serene／Achieve／Imagine" },
+        { id:"b2-02", brand:"Beltone", cat:"充電器", name:"プレミアム充電器", price:33000, note:"Envision／Serene／Achieve／Imagine" },
+        { id:"b2-03", brand:"Beltone", cat:"充電器", name:"コンパクト充電器", price:27000 },
+        { id:"b2-04", brand:"Beltone", cat:"充電器", name:"デスクトップ充電器", price:19800, note:"Boost Max S／Commence／Serene／Rely" },
+        { id:"b2-05", brand:"Beltone", cat:"ケーブル", name:"USBケーブル（マイクロ・タイプC）", price:1320 },
+        { id:"b2-06", brand:"Beltone", cat:"ケーブル", name:"ACアダプター", price:2200 },
+        { id:"b2-07", brand:"Beltone", cat:"工具", name:"セントリーワックスガードドライバー（I／II用）", price:550 },
+        { id:"b2-08", brand:"Beltone", cat:"工具", name:"充電オーダー用 マイクフィルター取付治具", price:2640 },
+        { id:"b2-09", brand:"Beltone", cat:"工具", name:"SF3用 レシーバー取り外し治具", price:550, note:"Envision／Serene／Achieve／Imagine" },
+        { id:"b2-10", brand:"Beltone", cat:"工具", name:"SF2C用 モールド取付治具", price:110, note:"Amaze／Rely" },
+        { id:"b2-11", brand:"Beltone", cat:"工具", name:"ピンリムーバー", price:550 },
+        { id:"b2-12", brand:"Beltone", cat:"工具", name:"ブースト用ピンリムーバー", price:1430 },
+        { id:"b2-13", brand:"Beltone", cat:"ケース識別", name:"左右識別マーカー（赤青2本セット）", price:550 },
+        { id:"b2-14", brand:"Beltone", cat:"ケース識別", name:"キカイケース", price:4400 },
+        { id:"b2-15", brand:"Beltone", cat:"ピンカバー", name:"バッテリーロッカー", price:1320 },
+        { id:"b2-16", brand:"Beltone", cat:"ピンカバー", name:"ボリュームカバー", price:660 },
+        { id:"b2-17", brand:"Beltone", cat:"レシーバー部品", name:"レシーバーストッパー", price:660 },
+        { id:"b2-18", brand:"Beltone", cat:"ピンカバー", name:"各種ピン", price:275, note:"バッテリードア・ジョイント" },
+        { id:"b2-19", brand:"Beltone", cat:"ピンカバー", name:"トリマーカバー表示板（各1ヶ）", price:770 },
+        { id:"b2-20", brand:"Beltone", cat:"ピンカバー", name:"トリマーカバー・ソケットカバー", price:385 },
+        { id:"b2-21", brand:"Beltone", cat:"ピンカバー", name:"プラスチックボルト（S90-SP・FORCE）", price:385, note:"バッテリーロッカー専用ピン2本1セット" },
+        { id:"b2-22", brand:"Beltone", cat:"ピンカバー", name:"端子カバー（S90-SP・FORCE）", price:385, note:"ブーツ接続端子カバー" },
+        { id:"b2-23", brand:"Beltone", cat:"ピンカバー", name:"S90-SP用 VOLカバー", price:385 },
+        { id:"b2-24", brand:"Beltone", cat:"オージオシュー", name:"オージオシューコード", price:7150, note:"長さ90cm" },
+        { id:"b2-25", brand:"Beltone", cat:"オージオシュー", name:"B7-001・003・004・005・006・007", price:7700 },
+        { id:"b2-26", brand:"Beltone", cat:"オージオシュー", name:"B7-002・009", price:9350 },
+        { id:"b2-27", brand:"Beltone", cat:"オージオシュー", name:"B7-008", price:11000 },
+        { id:"b2-28", brand:"Beltone", cat:"バイクロス", name:"バイクロス・クロスコード", price:3300 },
+        { id:"b2-29", brand:"Beltone", cat:"バイクロス", name:"バイクロス補聴器", price:46000, note:"非課税" },
+
+        // ---- 備品 ユニトロン①（耳栓・チューブ・レシーバー・フック） ----
+        { id:"u1-01", brand:"Unitron", cat:"ワックスガード", name:"HF3 ワックスガード（左右各8ヶ 計16ヶ入）", price:2750 },
+        { id:"u1-02", brand:"Unitron", cat:"ワックスガード", name:"HF4 ワックスガード（左右別 16ヶ入）", price:3300, note:"赤と青あり" },
+        { id:"u1-03", brand:"Unitron", cat:"ワックスガード", name:"ワックスフィルター（8本入）", price:990, note:"Smile" },
+        { id:"u1-04", brand:"Unitron", cat:"ワックスガード", name:"セルシールド（1パック8ヶ入）", price:935, note:"Vivante／Blu／Move／Jump" },
+        { id:"u1-05", brand:"Unitron", cat:"ワックスガード", name:"充電オーダー用マイクプロテクター（4組入）", price:4400, note:"マイクフィルター" },
+        { id:"u1-06", brand:"Unitron", cat:"耳せん", name:"Moxi Smile用 ベント付きイージーガード（8個入）", price:6160, note:"S・M・L" },
+        { id:"u1-07", brand:"Unitron", cat:"耳せん", name:"RIC／スリムチューブ用 耳栓（10個入）", price:4400, note:"オープン／パワー／チューリップ／クローズ／ベント S・M・L・キャップ" },
+        { id:"u1-08", brand:"Unitron", cat:"耳せん", name:"BTE用 耳せん（各）", price:220, note:"SS・S・M・L" },
+        { id:"u1-09", brand:"Unitron", cat:"チューブ", name:"ジョイントチューブ V3", price:110 },
+        { id:"u1-10", brand:"Unitron", cat:"チューブ", name:"ジョイント（V3のL字型プラスチック）", price:55 },
+        { id:"u1-11", brand:"Unitron", cat:"チューブ", name:"サウンドチューブ（細・1m）", price:220 },
+        { id:"u1-12", brand:"Unitron", cat:"チューブ", name:"サウンドチューブ（太・1m）", price:330 },
+        { id:"u1-13", brand:"Unitron", cat:"レシーバー", name:"S／M／Pレシーバー（Moxi Smile）", price:17600, note:"サイズ00・0・1・2・3・4" },
+        { id:"u1-14", brand:"Unitron", cat:"レシーバー", name:"S／M／Pレシーバー（Moxi Jump以降の器種）", price:17600, note:"サイズ0・1・2・3" },
+        { id:"u1-15", brand:"Unitron", cat:"レシーバー", name:"旧ノーマルレシーバー（T Moxi以前の器種）", price:17600, note:"サイズ0・1・2・3" },
+        { id:"u1-16", brand:"Unitron", cat:"レシーバー", name:"旧パワーレシーバー（T Moxi以前の器種）", price:17600, note:"サイズ1・2・3" },
+        { id:"u1-17", brand:"Unitron", cat:"レシーバー部品", name:"S／M／Pレシーバー用パーツ", price:220, note:"Smile／Vivante／Blu／Move／Jump" },
+        { id:"u1-18", brand:"Unitron", cat:"レシーバー部品", name:"ノーマルレシーバー／パワーレシーバー用パーツ", price:220, note:"Fit／Dura／Now／Kiss" },
+        { id:"u1-19", brand:"Unitron", cat:"フック", name:"フック", price:440, note:"通常・チャイルド・ベビー" },
+        { id:"u1-20", brand:"Unitron", cat:"フック", name:"ダンパーフック", price:770, note:"通常・チャイルド・ベビー" },
+        { id:"u1-21", brand:"Unitron", cat:"ピンカバー", name:"フック固定のピン", price:220 },
+        { id:"u1-22", brand:"Unitron", cat:"フック", name:"ダンパーセット", price:330 },
+        { id:"u1-23", brand:"Unitron", cat:"チューブ", name:"スリムチューブ", price:440 },
+
+        // ---- 備品 ユニトロン②（充電器・オージオシュー・その他） ----
+        { id:"u2-01", brand:"Unitron", cat:"充電器", name:"Insera S-R用充電器", price:11000 },
+        { id:"u2-02", brand:"Unitron", cat:"充電器", name:"Charger Go充電器", price:33000 },
+        { id:"u2-03", brand:"Unitron", cat:"充電器", name:"Moxi S-R用充電器", price:11000 },
+        { id:"u2-04", brand:"Unitron", cat:"充電器", name:"Moxi V-R／VRS用充電器", price:11000 },
+        { id:"u2-05", brand:"Unitron", cat:"充電器", name:"Stride P-R用充電器", price:11000 },
+        { id:"u2-06", brand:"Unitron", cat:"充電器", name:"Moxi R／RT用充電器", price:11000 },
+        { id:"u2-07", brand:"Unitron", cat:"充電器", name:"Moxi R／RT用充電器用パワーパック", price:11000 },
+        { id:"u2-08", brand:"Unitron", cat:"ケーブル", name:"USBケーブル（マイクロ・タイプC）", price:1320 },
+        { id:"u2-09", brand:"Unitron", cat:"ケーブル", name:"ACアダプター", price:2200 },
+        { id:"u2-10", brand:"Unitron", cat:"レシーバー部品", name:"レシーバーソケット Moxi用", price:880 },
+        { id:"u2-11", brand:"Unitron", cat:"工具", name:"Moxi用 レシーバーハンドリングツール", price:330, note:"レシーバー取付専用" },
+        { id:"u2-12", brand:"Unitron", cat:"工具", name:"Moxi用 ピン抜き", price:66 },
+        { id:"u2-13", brand:"Unitron", cat:"工具", name:"Moxi用 カバープレート・ロックプレート用治具", price:550 },
+        { id:"u2-14", brand:"Unitron", cat:"工具", name:"マイクプロテクター取り外しツール", price:550, note:"充電オーダー用" },
+        { id:"u2-15", brand:"Unitron", cat:"フック", name:"Dura用溝フック（レシーバー交換用）", price:165 },
+        { id:"u2-16", brand:"Unitron", cat:"ピンカバー", name:"イージーフォン用マグネット（1ヶ）", price:550 },
+        { id:"u2-17", brand:"Unitron", cat:"ケース識別", name:"左右識別マーカー（赤青2本セット）", price:550 },
+        { id:"u2-18", brand:"Unitron", cat:"ケース識別", name:"キカイケース", price:4400 },
+        { id:"u2-19", brand:"Unitron", cat:"ピンカバー", name:"バッテリーロッカー", price:1320 },
+        { id:"u2-20", brand:"Unitron", cat:"ピンカバー", name:"ボリュームカバー", price:660 },
+        { id:"u2-21", brand:"Unitron", cat:"レシーバー部品", name:"Moxi用 レシーバーストッパー", price:275 },
+        { id:"u2-22", brand:"Unitron", cat:"ピンカバー", name:"各種ピン", price:275, note:"バッテリードア・ジョイント" },
+        { id:"u2-23", brand:"Unitron", cat:"ピンカバー", name:"トリマーカバー表示板（各1ヶ）", price:770 },
+        { id:"u2-24", brand:"Unitron", cat:"ピンカバー", name:"トリマーカバー・ソケットカバー", price:385 },
+        { id:"u2-25", brand:"Unitron", cat:"レシーバー部品", name:"レシーバーカバー", price:770 },
+        { id:"u2-26", brand:"Unitron", cat:"ピンカバー", name:"いたずら防止電池ドア及び音量調節カバーセット", price:3300 },
+        { id:"u2-27", brand:"Unitron", cat:"オージオシュー", name:"U7-001", price:11000 },
+        { id:"u2-28", brand:"Unitron", cat:"オージオシュー", name:"U7-002", price:11000 },
+        { id:"u2-29", brand:"Unitron", cat:"オージオシュー", name:"U7-004・005", price:9350 },
+        { id:"u2-30", brand:"Unitron", cat:"バイクロス", name:"バイクロス・クロスコード", price:3300 },
+        { id:"u2-31", brand:"Unitron", cat:"バイクロス", name:"バイクロス補聴器", price:46000, note:"非課税" },
+
+        // ---- 無線通信機器 ----
+        { id:"b-wl-01", brand:"Beltone", cat:"無線機器", name:"マルチマイク＋", price:66000 },
+        { id:"b-wl-02", brand:"Beltone", cat:"無線機器", name:"TVストリーマー＋", price:46200 },
+        { id:"b-wl-03", brand:"Beltone", cat:"無線機器", name:"テレビリンク2", price:38500 },
+        { id:"b-wl-04", brand:"Beltone", cat:"無線機器", name:"ミニリモコン", price:16500, note:"音量・メモリー切換" },
+        { id:"u-wl-01", brand:"Unitron", cat:"無線機器", name:"ユニトロンリモコン2", price:33000, note:"North以降のみ" },
+        { id:"u-wl-02", brand:"Unitron", cat:"無線機器", name:"uDirect3（Uダイレクト3）", price:55000, note:"リモコン兼用・無線通信用アクセサリー" },
+        { id:"u-wl-03", brand:"Unitron", cat:"無線機器", name:"u-Mic", price:33000 },
+        { id:"u-wl-04", brand:"Unitron", cat:"無線機器", name:"uTV3", price:33000 },
+        { id:"u-wl-05", brand:"Unitron", cat:"無線機器", name:"uストリーム", price:55000, note:"リモコン兼用" },
+        { id:"u-wl-06", brand:"Unitron", cat:"無線機器", name:"TVコネクター", price:23100 },
+        { id:"u-wl-07", brand:"Unitron", cat:"無線機器", name:"パートナーマイク", price:44000, note:"最大約25m" },
+        { id:"u-wl-08", brand:"Unitron", cat:"無線機器", name:"DXリモコン", price:33000 },
+
+        // ---- 無線通信機器 付属品 ----
+        { id:"c-wa-01", brand:"共通", cat:"無線付属品", name:"ACアダプター（無線通信機器用）", price:2200 },
+        { id:"c-wa-02", brand:"共通", cat:"無線付属品", name:"マイクロUSBケーブル 1.5m", price:1320, note:"リモコン2・TVリンク2・フォンリンク2共通" },
+        { id:"c-wa-03", brand:"共通", cat:"無線付属品", name:"ストラップ（リモコン用・フォンリンク用・ボイスリンク用）", price:880 },
+        { id:"b-wa-04", brand:"Beltone", cat:"無線付属品", name:"オーディオケーブル 1m", price:1320, note:"TVリンク2用" },
+        { id:"b-wa-05", brand:"Beltone", cat:"無線付属品", name:"光デジタル角型ケーブル 1.2m", price:2310, note:"TVリンク2用" },
+        { id:"b-wa-06", brand:"Beltone", cat:"無線付属品", name:"同軸ケーブル", price:2860, note:"TVリンク2用" },
+        { id:"c-wa-07", brand:"共通", cat:"無線付属品", name:"ポーチ（リモコン用・フォンリンク用・ボイスリンク用）", price:880 },
+        { id:"b-wa-08", brand:"Beltone", cat:"無線付属品", name:"オーディオケーブル（ボイスリンク用）", price:1100 },
+        { id:"b-wa-09", brand:"Beltone", cat:"無線付属品", name:"パソコン接続コード（ボイスリンク用）", price:1100 },
+        { id:"b-wa-10", brand:"Beltone", cat:"無線付属品", name:"ミニUSB ACアダプター（テレビリンク用）", price:2750 },
+        { id:"b-wa-11", brand:"Beltone", cat:"無線付属品", name:"音声コード（テレビリンク用）", price:1100 },
+        { id:"b-wa-12", brand:"Beltone", cat:"無線付属品", name:"変換プラグ（テレビリンク用）", price:1100 },
+        { id:"u-wa-13", brand:"Unitron", cat:"無線付属品", name:"マッチング用ミニUSBケーブル", price:1210, note:"uDirect・ユニトロンリモコンをPCに接続" },
+        { id:"u-wa-14", brand:"Unitron", cat:"無線付属品", name:"ストラップ", price:880 },
+        { id:"u-wa-15", brand:"Unitron", cat:"無線付属品", name:"ミニUSBケーブル 2.95m", price:1210 },
+        { id:"u-wa-16", brand:"Unitron", cat:"無線付属品", name:"uDirect用ネックループ", price:6480 },
+        { id:"u-wa-17", brand:"Unitron", cat:"無線付属品", name:"オーディオケーブル 1.5m", price:1320, note:"uDirect・uTV用" },
+        { id:"u-wa-18", brand:"Unitron", cat:"無線付属品", name:"充電用ミニUSBケーブル 1.0m", price:3300 },
+        { id:"u-wa-19", brand:"Unitron", cat:"無線付属品", name:"uTV用 オーディオケーブル 90cm", price:3300 },
+        { id:"u-wa-20", brand:"Unitron", cat:"無線付属品", name:"uTV用 同軸ケーブル 90cm", price:5500 },
+        { id:"u-wa-21", brand:"Unitron", cat:"無線付属品", name:"イヤホン端子用ケーブル 1.5m", price:1210 },
+        { id:"u-wa-22", brand:"Unitron", cat:"無線付属品", name:"uTV用 ドライバー", price:3300 },
+        { id:"u-wa-23", brand:"Unitron", cat:"無線付属品", name:"ミニUSBスプリッタケーブル", price:1430 },
+
+        // ---- ポケット型 ----
+        { id:"c-pk-01", brand:"共通", cat:"ポケット", name:"ポケット用耳せん（各）", price:220, note:"SS・S・M・L" },
+        { id:"c-pk-02", brand:"共通", cat:"ポケット", name:"コンサート用ノーマルイヤホン", price:3300, note:"カラー：白" },
+        { id:"c-pk-03", brand:"共通", cat:"ポケット", name:"コンサート用パワーイヤホン", price:5500, note:"カラー：黒" },
+        { id:"c-pk-04", brand:"共通", cat:"ポケット", name:"シングルコード", price:880, note:"コンサート（P）用 白のみ" },
+        { id:"c-pk-05", brand:"共通", cat:"ポケット", name:"Yコード", price:1320, note:"コンサートP用" },
+        { id:"c-pk-06", brand:"共通", cat:"ポケット", name:"DAI用Yコード", price:1650, note:"コンサートP用 90cm" },
+        { id:"c-pk-07", brand:"共通", cat:"ポケット", name:"ストラップ", price:220, note:"コンサート（P）用" },
+        { id:"c-pk-08", brand:"共通", cat:"ポケット", name:"アダプター（コンサート（P）用）", price:110 },
+        { id:"c-pk-09", brand:"共通", cat:"ポケット", name:"クリップ側ケース", price:2200 },
+        { id:"c-pk-10", brand:"共通", cat:"ポケット", name:"フタ側ケース", price:1650 },
+        { id:"c-pk-11", brand:"共通", cat:"ポケット", name:"フタ側トップカバー", price:550, note:"アナログポケットのみ" },
+        { id:"c-pk-12", brand:"共通", cat:"ポケット", name:"中ケース", price:3300 },
+        { id:"c-pk-13", brand:"共通", cat:"ポケット", name:"蝶番", price:220, note:"コンサートのフタとケースの接続パーツ" },
+        { id:"c-pk-14", brand:"共通", cat:"ポケット", name:"クリップ", price:1430 },
+        { id:"c-pk-15", brand:"共通", cat:"ポケット", name:"ソケット（コンセント）", price:900, note:"非課税" },
+        { id:"c-pk-16", brand:"共通", cat:"ポケット", name:"基板付ソケット", price:2000, note:"非課税" },
+
+        // ---- その他①（ケア用品・乾燥剤） ----
+        { id:"c-o1-01", brand:"共通", cat:"ケア用品", name:"イヤチェーン：片耳（紺・茶／金・銀）", price:1430, note:"長さ30cm" },
+        { id:"c-o1-02", brand:"共通", cat:"ケア用品", name:"イヤチェーン：両耳（紺・茶／金・銀）", price:1430, note:"長さ60cm" },
+        { id:"c-o1-03", brand:"共通", cat:"乾燥", name:"乾燥剤（シリカゲル・大30g／袋）", price:220, note:"乾燥ケース用" },
+        { id:"c-o1-04", brand:"共通", cat:"乾燥", name:"乾燥剤（シリカゲル・小）", price:110, note:"充電器用" },
+        { id:"c-o1-05", brand:"共通", cat:"乾燥", name:"磁気シート（5枚入／袋）", price:1100 },
+        { id:"c-o1-06", brand:"共通", cat:"乾燥", name:"乾燥ケース用スポンジ", price:55 },
+        { id:"c-o1-07", brand:"共通", cat:"乾燥", name:"乾燥ケース：乾燥剤入・磁気シート付", price:935 },
+        { id:"c-o1-08", brand:"共通", cat:"乾燥", name:"乾燥ケース：乾燥剤無・磁気シート付", price:715 },
+        { id:"c-o1-09", brand:"共通", cat:"乾燥", name:"乾燥ケース：乾燥剤入・磁気シート無", price:715 },
+        { id:"c-o1-10", brand:"共通", cat:"乾燥", name:"乾燥ケース：乾燥剤無・磁気シート無", price:495 },
+        { id:"b-o1-11", brand:"Beltone", cat:"乾燥", name:"乾燥機 Beltone PerfectDry LUX", price:14190 },
+        { id:"c-o1-12", brand:"共通", cat:"ケア用品", name:"アルガーゼ（100枚入）", price:1320 },
+        { id:"c-o1-13", brand:"共通", cat:"ケア用品", name:"アルガーゼ（10枚入）", price:330 },
+        { id:"c-o1-14", brand:"共通", cat:"ケア用品", name:"アルガーゼ（詰替え用／100枚入）", price:1100 },
+        { id:"c-o1-15", brand:"共通", cat:"ケア用品", name:"ワックスクリーナブラシ", price:440 },
+        { id:"c-o1-16", brand:"共通", cat:"ケア用品", name:"クリーニングピン（5本）", price:220 },
+        { id:"c-o1-17", brand:"共通", cat:"ケース識別", name:"NJH白ケース（オーダー・耳かけ兼用）", price:1650, note:"大・小" },
+        { id:"c-o1-18", brand:"共通", cat:"ケース識別", name:"黒ジッパーケース", price:1650 },
+        { id:"c-o1-19", brand:"共通", cat:"ケース識別", name:"スリーブ", price:220 },
+        { id:"c-o1-20", brand:"共通", cat:"ケース識別", name:"黒ジッパーケースセット", price:3740, note:"NJH白ケース・黒ジッパーケース・シリコンパッド・スリーブ" },
+        { id:"c-o1-21", brand:"共通", cat:"ケース識別", name:"NJH携帯用ケース", price:660 },
+        { id:"c-o1-22", brand:"共通", cat:"ケース識別", name:"NJHペーパーバッグ", price:88 },
+        { id:"c-o1-23", brand:"共通", cat:"ケース識別", name:"NJH不織布バッグ", price:88 },
+
+        // ---- その他②（耳型材料・測定具） ----
+        { id:"c-o2-01", brand:"共通", cat:"耳型材料", name:"DETAX詰替え用耳型主剤", price:6600 },
+        { id:"c-o2-02", brand:"共通", cat:"耳型材料", name:"DETAX硬化剤", price:2200 },
+        { id:"c-o2-03", brand:"共通", cat:"耳型材料", name:"グリーンエコ1：1（スプーン付）", price:17600 },
+        { id:"c-o2-04", brand:"共通", cat:"耳型材料", name:"注入器", price:8800 },
+        { id:"c-o2-05", brand:"共通", cat:"耳型材料", name:"モノマー（10mL）", price:1100 },
+        { id:"c-o2-06", brand:"共通", cat:"工具", name:"フェザーナイフ ホルダー", price:3300 },
+        { id:"c-o2-07", brand:"共通", cat:"工具", name:"フェザーナイフ 替刃", price:550 },
+        { id:"c-o2-08", brand:"共通", cat:"耳型材料", name:"テグス用 つり糸（1m）", price:1100 },
+        { id:"c-o2-09", brand:"共通", cat:"耳型材料", name:"ビーズ（20ヶ入）", price:1100 },
+        { id:"c-o2-10", brand:"共通", cat:"測定具", name:"特性用紙 FONIX6500", price:2310 },
+        { id:"c-o2-11", brand:"共通", cat:"測定具", name:"特性用紙 FONIX7000", price:3300 },
+        { id:"c-o2-12", brand:"共通", cat:"ケア用品", name:"エタノール（500mL）", price:550 },
+        { id:"c-o2-13", brand:"共通", cat:"耳型材料", name:"ベージュパウダー（25g）", price:1100 },
+        { id:"c-o2-14", brand:"共通", cat:"耳型材料", name:"接着剤 シアノンS（20g）", price:1980, note:"粘度が低い接着剤" },
+        { id:"c-o2-15", brand:"共通", cat:"耳型材料", name:"接着剤 シアノンMQ（20g）", price:1980, note:"粘度が高い接着剤" },
+        { id:"c-o2-16", brand:"共通", cat:"耳型材料", name:"抜髄針", price:1100 },
+        { id:"c-o2-17", brand:"共通", cat:"耳型材料", name:"デンタルピック", price:3300 },
+        { id:"b-o2-18", brand:"Beltone", cat:"測定具", name:"LEDイヤライト：ベルトーン", price:1870 },
+        { id:"c-o2-19", brand:"共通", cat:"測定具", name:"オトスコープ：HEINEミニ3000", price:33000 },
+        { id:"b-o2-20", brand:"Beltone", cat:"測定具", name:"電球：ベルトーンイヤライト", price:440 },
+        { id:"c-o2-21", brand:"共通", cat:"測定具", name:"電球：HEINEミニ3000用", price:6600 },
+        { id:"c-o2-22", brand:"共通", cat:"測定具", name:"聴音器", price:4400 },
+        { id:"c-o2-23", brand:"共通", cat:"測定具", name:"聴音器の先のゴム", price:825 },
+        { id:"c-o2-24", brand:"共通", cat:"測定具", name:"電池チェッカー：レイオバック", price:1100 },
+        { id:"c-o2-25", brand:"共通", cat:"測定具", name:"RIC用測定メジャー", price:220 },
+
+        // ---- イヤモールド／RICモールド ----
+        { id:"c-md-01", brand:"共通", cat:"イヤモールド", name:"ハード（スタンダード・ハーフシェル・カナル）", price:10000, note:"非課税・再作期間3ヶ月・保証期間なし" },
+        { id:"c-md-02", brand:"共通", cat:"イヤモールド", name:"ハード（スケルトン）", price:11500, note:"非課税・再作期間3ヶ月・保証期間なし" },
+        { id:"c-md-03", brand:"共通", cat:"イヤモールド", name:"ハード（CIC）", price:11500, note:"非課税・再作期間3ヶ月・保証期間なし" },
+        { id:"c-md-04", brand:"共通", cat:"イヤモールド", name:"ソフト（スタンダード・ハーフシェル・カナル）", price:10500, note:"非課税・再作期間3ヶ月・保証期間なし" },
+        { id:"c-md-05", brand:"共通", cat:"イヤモールド", name:"ポケット用ハード（スタンダード）", price:10000, note:"非課税・再作期間3ヶ月・保証期間なし" },
+        { id:"c-md-06", brand:"共通", cat:"イヤモールド", name:"ポケット用メタルリング", price:550 },
+        { id:"c-md-07", brand:"共通", cat:"イヤモールド", name:"イヤモールド用エルボー", price:330 },
+        { id:"c-md-08", brand:"共通", cat:"イヤモールド", name:"テグス取り付け（ハードのみ）", price:1500, note:"非課税" },
+        { id:"c-md-09", brand:"共通", cat:"イヤモールド", name:"名入れ（ハードのみ）", price:1000, note:"非課税" },
+        { id:"c-md-10", brand:"共通", cat:"イヤモールド", name:"UVコーティング", price:3000, note:"非課税" },
+        { id:"c-md-11", brand:"共通", cat:"イヤモールド", name:"修正料金（ハード・ソフト共通）", price:3500, note:"非課税" },
+        { id:"c-md-12", brand:"共通", cat:"イヤモールド", name:"プレートモールド（新規注文時）", price:26000, note:"非課税・ベルトーン／ユニトロン共通" },
+        { id:"c-md-13", brand:"共通", cat:"RICモールド", name:"プレートモールドレシーバー", price:16000, note:"非課税" },
+        { id:"c-md-14", brand:"共通", cat:"イヤモールド", name:"スリムチューブ用オープンモールド（シェル）", price:10000, note:"非課税" },
+        { id:"c-md-15", brand:"共通", cat:"RICモールド", name:"RICモールド（シェル）", price:10000, note:"非課税・再作期間2年・保証期間なし" },
+        { id:"c-md-16", brand:"共通", cat:"RICモールド", name:"RICモールド用 ソケット", price:600, note:"非課税" },
+        { id:"c-md-17", brand:"共通", cat:"RICモールド", name:"RICモールドレシーバー固定用先端チューブ", price:350, note:"非課税" },
+        { id:"c-md-18", brand:"共通", cat:"RICモールド", name:"RICモールド用 フェースプレート（RECコード込み）", price:2400, note:"非課税" },
+        { id:"c-md-19", brand:"共通", cat:"RICモールド", name:"RICモールド用 レシーバーコード", price:500, note:"非課税" },
+        { id:"c-md-20", brand:"共通", cat:"RICモールド", name:"セルストップ土台", price:500, note:"非課税" },
+        { id:"c-md-21", brand:"共通", cat:"RICモールド", name:"テグス", price:1500, note:"非課税" }
+    ];
+
+    function brandMeta(brand) {
+        if (brand === "Beltone") return { key: "beltone", icon: "🔵" };
+        if (brand === "Unitron") return { key: "unitron", icon: "🟠" };
+        return { key: "common", icon: "⚪" };
+    }
+
+    function searchText(p) {
+        return (p.name + " " + (p.note||"") + " " + p.brand + " " + p.cat + " " + (catKeywords[p.cat]||"")).toLowerCase();
+    }
+
+    function scoreItem(p, terms) {
+        const text = searchText(p);
+        const nameLower = p.name.toLowerCase();
+        let score = 0;
+        terms.forEach(t => {
+            if (!t) return;
+            if (text.includes(t)) score += 2;
+            if (nameLower.includes(t)) score += 3;
+            if (p.brand.toLowerCase().includes(t)) score += 1;
+            if (p.cat.toLowerCase().includes(t)) score += 1;
+        });
+        return score;
+    }
+
+    function getMatches(q, limit) {
+        const query = (q || "").trim().toLowerCase();
+        if (!query) return [];
+        const terms = query.split(/[\s　]+/).filter(Boolean);
+        const scored = partsDB.map(p => ({ ...p, score: scoreItem(p, terms) }))
+            .filter(p => p.score > 0);
+
+        // ブランドごとにグループ化し、各グループ内はスコア順にソート
+        const groups = {};
+        scored.forEach(p => {
+            (groups[p.brand] = groups[p.brand] || []).push(p);
+        });
+        Object.values(groups).forEach(g => g.sort((a, b) => b.score - a.score));
+
+        // 最高スコアが高いブランド順に、ラウンドロビンで均等に取り出す
+        const brandOrder = Object.keys(groups).sort((a, b) => groups[b][0].score - groups[a][0].score);
+        const result = [];
+        const cursors = {};
+        brandOrder.forEach(b => cursors[b] = 0);
+        while (result.length < limit) {
+            let addedAny = false;
+            for (const b of brandOrder) {
+                if (cursors[b] < groups[b].length) {
+                    result.push(groups[b][cursors[b]]);
+                    cursors[b]++;
+                    addedAny = true;
+                    if (result.length >= limit) break;
+                }
+            }
+            if (!addedAny) break;
+        }
+        return result;
+    }
+
+    const partsQuery = document.getElementById('partsQuery');
+    const partsSearchBtn = document.getElementById('partsSearchBtn');
+    const partsResult = document.getElementById('partsResult');
+    const partsSuggest = document.getElementById('partsSuggest');
+
+    function renderPartCards(list) {
+        partsResult.innerHTML = '';
+        if (list.length === 0) {
+            partsResult.innerHTML = '<div class="no-result">該当するパーツが見つかりませんでした。<br>別のキーワードで試すか、パーツカタログをご確認ください。</div>';
+            partsResult.classList.add('show');
+            return;
+        }
+        list.forEach(p => {
+            const meta = brandMeta(p.brand);
+            const card = document.createElement('div');
+            card.className = `part-card part-card-${meta.key}`;
+            card.innerHTML = `
+                <span class="brand brand-${meta.key}">${meta.icon} ${p.brand}</span><span class="cat-tag">${p.cat}</span>
+                <div class="name">${p.name}</div>
+                <div class="note">${p.note || ''}</div>
+                <button type="button" class="ask-btn" data-id="${p.id}">これですか？ → 価格を表示</button>
+                <div class="price-box price-box-${meta.key}" id="price-${p.id}"></div>
+            `;
+            partsResult.appendChild(card);
+        });
+        partsResult.classList.add('show');
+
+        partsResult.querySelectorAll('.ask-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const id = this.dataset.id;
+                const part = partsDB.find(x => x.id === id);
+                const box = document.getElementById('price-' + id);
+                if (!part || !box) return;
+
+                if (part.price > 0) {
+                    box.innerHTML = `
+                        <div class="price">¥${part.price.toLocaleString()}</div>
+                        <div class="tax">税込 ／ ${part.note || part.cat} ／ ${part.brand}</div>
+                    `;
+                } else {
+                    box.innerHTML = `
+                        <div class="price" style="font-size:1.1rem;">価格はカタログでご確認ください</div>
+                        <div class="tax">${part.note || part.cat} ／ ${part.brand}</div>
+                    `;
+                }
+                box.classList.add('show');
+                this.textContent = '価格を表示しました ✓';
+                this.disabled = true;
+                this.style.opacity = '0.7';
+            });
+        });
+    }
+
+    function searchParts() {
+        hideSuggest();
+        const matches = getMatches(partsQuery.value, 10);
+        if (!(partsQuery.value || '').trim()) {
+            partsResult.innerHTML = '<div class="no-result">キーワードを入力してください</div>';
+            partsResult.classList.add('show');
+            return;
+        }
+        renderPartCards(matches);
+    }
+
+    function hideSuggest() {
+        partsSuggest.innerHTML = '';
+        partsSuggest.classList.remove('show');
+    }
+
+    function renderSuggestions(q) {
+        const matches = getMatches(q, 8);
+        if (!matches.length) {
+            hideSuggest();
+            return;
+        }
+        partsSuggest.innerHTML = '';
+        matches.forEach(p => {
+            const meta = brandMeta(p.brand);
+            const item = document.createElement('div');
+            item.className = 'suggest-item';
+            item.innerHTML = `
+                <span class="dot dot-${meta.key}"></span>
+                <span class="s-name">${p.name}</span>
+                <span class="s-cat">${p.brand}・${p.cat}</span>
+            `;
+            item.addEventListener('click', () => {
+                partsQuery.value = p.name;
+                hideSuggest();
+                renderPartCards([p]);
+            });
+            partsSuggest.appendChild(item);
+        });
+        partsSuggest.classList.add('show');
+    }
+
+    partsSearchBtn.addEventListener('click', searchParts);
+    partsQuery.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') searchParts();
+        if (e.key === 'Escape') hideSuggest();
+    });
+    partsQuery.addEventListener('input', () => {
+        renderSuggestions(partsQuery.value);
+    });
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.parts-input-wrap')) hideSuggest();
+    });
+
+
+    // ========== 修理可否チェック（修理不能器種一覧 2026年6月現在） ==========
+    // 形式: [メーカー, 区分, 機種名, 販売終了(年.月), 修理期間満了(年.月)]
+    const RC_PDF = "https://www.njha.co.jp/uploads/2026.6%20%E4%BF%AE%E7%90%86%E4%B8%8D%E8%83%BD%E5%99%A8%E7%A8%AE%E4%B8%80%E8%A6%A7%E8%A1%A8.pdf";
+    const rcData = [
+        // ---- Beltone 耳かけ型・ポケット型 ----
+        ["Beltone","耳かけ・ポケット型","ワン","2013.12","2019.9"],
+        ["Beltone","耳かけ・ポケット型","トゥルー 17","2017.10","2023.2"],
+        ["Beltone","耳かけ・ポケット型","プロミス 17","2017.10","2025.3"],
+        ["Beltone","耳かけ・ポケット型","ファースト 17","2019.12","2025.3"],
+        ["Beltone","耳かけ・ポケット型","レジェンド 17","2021.11","2026.11"],
+        ["Beltone","耳かけ・ポケット型","リンク 75","2011.3","2018.6"],
+        ["Beltone","耳かけ・ポケット型","アイデンティティ 76D、86D","2013.4","2019.9"],
+        ["Beltone","耳かけ・ポケット型","リンク 65","2013.12","2019.9"],
+        ["Beltone","耳かけ・ポケット型","アイデンティティ 66D","2014.11","2019.9"],
+        ["Beltone","耳かけ・ポケット型","マーク シリーズ","2014.12","2020.11"],
+        ["Beltone","耳かけ・ポケット型","トゥルー 9","2017.10","2023.2"],
+        ["Beltone","耳かけ・ポケット型","プロミス 9","2017.10","2025.3"],
+        ["Beltone","耳かけ・ポケット型","ファースト 9","2019.12","2025.3"],
+        ["Beltone","耳かけ・ポケット型","レジェンド 9","2021.11","2026.11"],
+        ["Beltone","耳かけ・ポケット型","アクセス","2013.12","2019.9"],
+        ["Beltone","耳かけ・ポケット型","チェンジ 75、85","2013.1","2020.11"],
+        ["Beltone","耳かけ・ポケット型","トゥルー 6","2017.10","2023.2"],
+        ["Beltone","耳かけ・ポケット型","プロミス 6","2017.10","2025.3"],
+        ["Beltone","耳かけ・ポケット型","ファースト 6","2019.12","2025.3"],
+        ["Beltone","耳かけ・ポケット型","レジェンド 6","2021.11","2026.11"],
+        ["Beltone","耳かけ・ポケット型","トゥルー 3","2017.10","2023.2"],
+        ["Beltone","耳かけ・ポケット型","オリジンシリーズ（1-75を除く）","2021.11","2026.11"],
+        ["Beltone","耳かけ・ポケット型","コンサート","2019.4","2025.9"],
+        ["Beltone","耳かけ・ポケット型","ターン 85P","2014.11","2019.11"],
+        ["Beltone","耳かけ・ポケット型","フォース","2015.5","2022.4"],
+        ["Beltone","耳かけ・ポケット型","コンサートP","2017.6","2022.6"],
+        ["Beltone","耳かけ・ポケット型","ブースト 95","2019.12","2025.3"],
+        ["Beltone","耳かけ・ポケット型","ブーストプラス 95","2019.11","2026.11"],
+        // ---- Beltone 耳あな型 ----
+        ["Beltone","耳あな型","オーリア","2010.2","2018.6"],
+        ["Beltone","耳あな型","タッチ 17（耳あな既製品）","2012.4","2019.9"],
+        ["Beltone","耳あな型","リーチ","2012.3","2019.9"],
+        ["Beltone","耳あな型","ワン","2012.3","2018.6"],
+        ["Beltone","耳あな型","トゥルー 17","2017.10","2023.2"],
+        ["Beltone","耳あな型","プロミス 17","2017.10","2023.2"],
+        ["Beltone","耳あな型","プライムシリーズ","2018.2","2023.2"],
+        ["Beltone","耳あな型","レジェンド 17","2021.11","2026.11"],
+        ["Beltone","耳あな型","ミラ","2011.3","2018.6"],
+        ["Beltone","耳あな型","タッチ 9（耳あな既製品）","2012.4","2019.9"],
+        ["Beltone","耳あな型","アイデンティティ","2012.6","2019.9"],
+        ["Beltone","耳あな型","リンク","2012.9","2019.9"],
+        ["Beltone","耳あな型","トゥルー 9","2017.10","2023.2"],
+        ["Beltone","耳あな型","プロミス 9","2017.10","2023.2"],
+        ["Beltone","耳あな型","レジェンド 9","2021.11","2026.11"],
+        ["Beltone","耳あな型","アルカ","2010.4","2018.6"],
+        ["Beltone","耳あな型","アクセス","2013.11","2019.9"],
+        ["Beltone","耳あな型","チェンジ","2013.11","2019.9"],
+        ["Beltone","耳あな型","トゥルー 6","2017.10","2023.2"],
+        ["Beltone","耳あな型","プロミス 6","2017.10","2023.2"],
+        ["Beltone","耳あな型","レジェンド 6","2021.11","2026.11"],
+        ["Beltone","耳あな型","オプティママックス","2015.11","2020.11"],
+        ["Beltone","耳あな型","ターン カナルP、カスタム、CIC","2012.1","2018.6"],
+        // ---- Unitron 耳かけ型 ----
+        ["Unitron","耳かけ型","モクシー エレメント 16","2011.8","2019.3"],
+        ["Unitron","耳かけ型","ネクスト 16","2011.12","2019.9"],
+        ["Unitron","耳かけ型","YUU","2011.12","2019.9"],
+        ["Unitron","耳かけ型","エレメント 16","2012.10","2019.9"],
+        ["Unitron","耳かけ型","モクシー 20-DW","2017.2","2023.2"],
+        ["Unitron","耳かけ型","モクシーキス 20","2018.2","2023.2"],
+        ["Unitron","耳かけ型","モクシー2デュラ 20","2019.3","2025.3"],
+        ["Unitron","耳かけ型","モクシー2キス 20","2019.3","2025.3"],
+        ["Unitron","耳かけ型","ストライドP Pro","2017.10","2026.9"],
+        ["Unitron","耳かけ型","モクシー フィット Pro","2017.10","2026.9"],
+        ["Unitron","耳かけ型","モクシー デュラ Pro","2017.10","2026.9"],
+        ["Unitron","耳かけ型","モクシー エレメント 4、8","2011.8","2019.3"],
+        ["Unitron","耳かけ型","ネクスト 8","2011.12","2019.9"],
+        ["Unitron","耳かけ型","エレメント 8","2012.10","2019.9"],
+        ["Unitron","耳かけ型","クォンタムシリーズ","2013.11","2022.4"],
+        ["Unitron","耳かけ型","モーダ13 ラティテュード","2014.6","2020.11"],
+        ["Unitron","耳かけ型","モクシー 12-DW","2017.2","2023.2"],
+        ["Unitron","耳かけ型","モクシーキス 12","2018.2","2023.2"],
+        ["Unitron","耳かけ型","モクシー2デュラ 12","2019.3","2025.3"],
+        ["Unitron","耳かけ型","モクシー2キス 12","2019.3","2025.3"],
+        ["Unitron","耳かけ型","ストライドP 800","2017.10","2026.9"],
+        ["Unitron","耳かけ型","モクシー フィット 800","2017.10","2026.9"],
+        ["Unitron","耳かけ型","モクシー デュラ 800","2017.10","2026.9"],
+        ["Unitron","耳かけ型","ネクスト 4","2011.12","2019.9"],
+        ["Unitron","耳かけ型","エレメント 4","2012.10","2019.9"],
+        ["Unitron","耳かけ型","モクシー 6-DW","2017.2","2023.2"],
+        ["Unitron","耳かけ型","モクシーキス 6","2018.2","2023.2"],
+        ["Unitron","耳かけ型","モクシー2デュラ 6E","2019.3","2025.3"],
+        ["Unitron","耳かけ型","モクシー2キス 6E","2019.3","2025.3"],
+        ["Unitron","耳かけ型","ストライドP 700","2017.10","2026.9"],
+        ["Unitron","耳かけ型","モクシー フィット 700","2017.10","2026.9"],
+        ["Unitron","耳かけ型","モクシー デュラ 700","2017.10","2026.9"],
+        ["Unitron","耳かけ型","ネクスト E","2011.12","2019.9"],
+        ["Unitron","耳かけ型","シャイン（プラス）","2016.12","2022.4"],
+        ["Unitron","耳かけ型","モクシー ED","2017.2","2023.2"],
+        ["Unitron","耳かけ型","モクシーキス E","2018.2","2023.2"],
+        ["Unitron","耳かけ型","ストライドP 600","2017.10","2026.9"],
+        ["Unitron","耳かけ型","モクシー フィット 600","2017.10","2026.9"],
+        ["Unitron","耳かけ型","モクシー デュラ 600","2017.10","2026.9"],
+        ["Unitron","耳かけ型","ストライドP 500","2017.10","2026.9"],
+        ["Unitron","耳かけ型","モクシー フィット 500","2017.10","2026.9"],
+        ["Unitron","耳かけ型","ラティテュード HP（BTE）","2012.12","2020.11"],
+        ["Unitron","耳かけ型","360（プラス）","2014.9","2022.4"],
+        ["Unitron","耳かけ型","MAX","2019.2","2026.9"],
+        // ---- Unitron 耳あな型 ----
+        ["Unitron","耳あな型","パスポート","2012.3","2018.6"],
+        ["Unitron","耳あな型","YUU","2012.3","2018.6"],
+        ["Unitron","耳あな型","ストライド Pro","2017.10","2026.9"],
+        ["Unitron","耳あな型","ヒューズ 4、8（耳あな既製品）","2011.1","2019.9"],
+        ["Unitron","耳あな型","エレメント","2011.9","2018.6"],
+        ["Unitron","耳あな型","ネクスト","2011.12","2018.6"],
+        ["Unitron","耳あな型","ラティテュード","2012.3","2018.6"],
+        ["Unitron","耳あな型","クォンタム シリーズ","2013.11","2020.11"],
+        ["Unitron","耳あな型","クォンタム2 シリーズ","2015.11","2020.11"],
+        ["Unitron","耳あな型","ストライド 800、700","2017.10","2026.9"],
+        ["Unitron","耳あな型","ブリーズ","2006.8","2018.6"],
+        ["Unitron","耳あな型","シャイン、シャインプラス","2015.3","2020.11"],
+        ["Unitron","耳あな型","ストライド 600","2017.10","2026.9"],
+        ["Unitron","耳あな型","ストライド 500","2017.10","2026.9"]
+    ];
+
+    // ローマ字でも検索できるようにする別名
+    const rcAlias = {
+        "モクシー":"moxi","ストライド":"stride","ネクスト":"next","エレメント":"element",
+        "ラティテュード":"latitude","クォンタム":"quantum","シャイン":"shine","ブリーズ":"breeze",
+        "パスポート":"passport","ヒューズ":"fuse","ブースト":"boost","レジェンド":"legend",
+        "トゥルー":"true","プロミス":"promise","ファースト":"first","オリジン":"origin",
+        "コンサート":"concert","ターン":"turn","フォース":"force","アクセス":"access",
+        "チェンジ":"change","リンク":"link","アイデンティティ":"identity","マーク":"mark",
+        "ワン":"one","デュラ":"dura","フィット":"fit","キス":"kiss","ミラ":"mira"
+    };
+
+    function rcNorm(str) {
+        return String(str || '')
+            .normalize('NFKC')
+            .toLowerCase()
+            .replace(/[\u3041-\u3096]/g, c => String.fromCharCode(c.charCodeAt(0) + 0x60)) // ひらがな→カタカナ
+            .replace(/[\s\u3000・･\-ー()（）、,，.]/g, m => (m === 'ー' ? 'ー' : ''));
+    }
+    function rcSearchKey(item) {
+        let key = rcNorm(item[2]);
+        Object.keys(rcAlias).forEach(k => { if (item[2].indexOf(k) !== -1) key += rcNorm(rcAlias[k]); });
+        return key;
+    }
+    const rcIndex = rcData.map(it => ({ brand: it[0], type: it[1], name: it[2], end: it[3], exp: it[4], key: rcSearchKey(it) }));
+
+    function rcYM(str) { const a = str.split('.'); return { y: +a[0], m: +a[1] }; }
+    function rcFmt(str) { const t = rcYM(str); return t.y + '年' + t.m + '月'; }
+    function rcStatus(exp) {
+        const now = new Date();
+        const cur = now.getFullYear() * 12 + (now.getMonth() + 1);
+        const t = rcYM(exp);
+        const e = t.y * 12 + t.m;
+        if (e < cur) return { cls: 'expired', label: '修理不能（修理期間満了）' };
+        if (e === cur) return { cls: 'thismonth', label: '今月で修理期間満了' };
+        return { cls: 'upcoming', label: '修理期間満了予定（あと' + (e - cur) + 'ヶ月）' };
+    }
+    function rcEsc(t) {
+        return String(t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+    }
+
+    let rcBrand = '';
+    const rcQuery = document.getElementById('rcQuery');
+    const rcSearchBtn = document.getElementById('rcSearchBtn');
+    const rcResult = document.getElementById('rcResult');
+    const rcSuggest = document.getElementById('rcSuggest');
+    const rcInputWrap = document.getElementById('rcInputWrap');
+    const rcBrandBtns = document.querySelectorAll('.rc-brand-btn');
+
+    function rcMatch(q) {
+        const terms = String(q || '').normalize('NFKC').split(/[\s\u3000]+/).map(rcNorm).filter(Boolean);
+        if (!terms.length) return [];
+        return rcIndex.filter(it => it.brand === rcBrand && terms.every(t => it.key.indexOf(t) !== -1));
+    }
+    function rcHideSuggest() { rcSuggest.innerHTML = ''; rcSuggest.classList.remove('show'); }
+    function rcRender(list, q) {
+        const bk = rcBrand.toLowerCase();
+        if (!list.length) {
+            rcResult.innerHTML = '<div class="rc-notfound">「' + rcEsc(q) + '」は ' + rcBrand +
+                ' の修理不能器種一覧（2026年6月現在）に見つかりませんでした。<br>' +
+                '一覧に載っていない場合は、現行品など修理対応の器種の可能性があります。型名の表記違いかもしれないので、念のため' +
+                '<a class="rc-pdf" href="' + RC_PDF + '" target="_blank" rel="noopener">一覧表PDF</a>でもご確認ください。</div>';
+            rcResult.classList.add('show');
+            return;
+        }
+        let html = '<div class="rc-count">' + rcBrand + '：' + list.length + '件ヒットしました</div>';
+        list.forEach(it => {
+            const st = rcStatus(it.exp);
+            html += '<div class="rc-card rc-card-' + bk + '">' +
+                '<div class="rc-name">' + rcEsc(it.name) + '<span class="rc-type">' + rcEsc(it.type) + '</span></div>' +
+                '<span class="rc-badge ' + st.cls + '">' + st.label + '</span>' +
+                '<div class="rc-dates">販売終了：' + rcFmt(it.end) + '　／　修理期間満了：' + rcFmt(it.exp) + '</div>' +
+                '</div>';
+        });
+        rcResult.innerHTML = html;
+        rcResult.classList.add('show');
+    }
+    function rcDoSearch() {
+        rcHideSuggest();
+        const q = rcQuery.value.trim();
+        if (!rcBrand) return;
+        if (!q) {
+            rcResult.innerHTML = '<div class="no-result">機種名を入力してください</div>';
+            rcResult.classList.add('show');
+            return;
+        }
+        rcRender(rcMatch(q), q);
+    }
+    function rcSuggestions() {
+        const q = rcQuery.value.trim();
+        const list = rcMatch(q).slice(0, 8);
+        if (!q || !list.length) { rcHideSuggest(); return; }
+        rcSuggest.innerHTML = '';
+        const bk = rcBrand.toLowerCase();
+        list.forEach(it => {
+            const div = document.createElement('div');
+            div.className = 'suggest-item';
+            div.innerHTML = '<span class="dot dot-' + bk + '"></span><span class="s-name">' + rcEsc(it.name) +
+                '</span><span class="s-cat">' + rcEsc(it.type) + '</span>';
+            div.addEventListener('click', () => {
+                rcQuery.value = it.name;
+                rcHideSuggest();
+                rcRender([it], it.name);
+            });
+            rcSuggest.appendChild(div);
+        });
+        rcSuggest.classList.add('show');
+    }
+    function rcSetBrand(brand) {
+        rcBrand = brand;
+        rcBrandBtns.forEach(b => b.classList.toggle('active', b.dataset.brand === brand));
+        rcInputWrap.classList.remove('beltone', 'unitron');
+        rcInputWrap.classList.add(brand.toLowerCase());
+        rcQuery.disabled = false;
+        rcSearchBtn.disabled = false;
+        rcQuery.placeholder = brand + ' の機種名（例：' + (brand === 'Beltone' ? 'レジェンド 9' : 'モクシー 600') + '）';
+        rcQuery.value = '';
+        rcHideSuggest();
+        rcResult.innerHTML = '';
+        rcResult.classList.remove('show');
+        rcQuery.focus();
+    }
+    function resetRepairCheck() {
+        rcBrand = '';
+        rcBrandBtns.forEach(b => b.classList.remove('active'));
+        rcInputWrap.classList.remove('beltone', 'unitron');
+        rcQuery.value = '';
+        rcQuery.disabled = true;
+        rcSearchBtn.disabled = true;
+        rcQuery.placeholder = '先にメーカーを選んでください';
+        rcHideSuggest();
+        rcResult.innerHTML = '';
+        rcResult.classList.remove('show');
+    }
+    rcBrandBtns.forEach(b => b.addEventListener('click', () => rcSetBrand(b.dataset.brand)));
+    rcSearchBtn.addEventListener('click', rcDoSearch);
+    rcQuery.addEventListener('keydown', e => {
+        if (e.key === 'Enter') rcDoSearch();
+        if (e.key === 'Escape') rcHideSuggest();
+    });
+    rcQuery.addEventListener('input', rcSuggestions);
+    document.addEventListener('click', e => { if (!e.target.closest('#rcInputWrap')) rcHideSuggest(); });
+
+    // Service Worker 登録（PWA化）
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js')
+                .then((reg) => console.log('Service Worker registered:', reg.scope))
+                .catch((err) => console.log('Service Worker registration failed:', err));
+        });
+    }
+</script>
+
+</body>
+</html>
