@@ -1,12 +1,12 @@
 // Service Worker for NJH 業務アシスト
-const CACHE_NAME = 'njh-assist-v3';
+const CACHE_NAME = 'njh-assist-v4';
 const ASSETS = [
   './',
   './index.html',
-  './manifest.json',
-  './icons/icon-192.png',
-  './icons/icon-512.png',
-  './icons/apple-touch-icon.png'
+  './manifest-v2.json',
+  './icon/icon-192.png',
+  './icon/icon-512.png',
+  './icon/apple-touch-icon.png'
 ];
 
 // Install
