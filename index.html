@@ -1456,6 +1456,7 @@
             .normalize('NFKC')
             .toLowerCase()
             .replace(/[\u3041-\u3096]/g, c => String.fromCharCode(c.charCodeAt(0) + 0x60)) // ひらがな→カタカナ
+            .replace(/[ァィゥェォャュョッヮヵヶ]/g, c => 'アイウエオヤユヨツワカケ'['ァィゥェォャュョッヮヵヶ'.indexOf(c)]) // 小さいカナ→大きいカナ（クォ→クオ等）
             .replace(/[\s\u3000・･\-ー()（）、,，.]/g, m => (m === 'ー' ? 'ー' : ''));
     }
     function rcSearchKey(item) {
