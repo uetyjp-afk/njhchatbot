@@ -1702,5 +1702,9 @@
     }
 </script>
 
+<button id="toTop" type="button" aria-label="一番上に戻る" style="display:none;position:fixed;right:14px;bottom:20px;z-index:90;width:56px;height:56px;border-radius:50%;background:#0a4630;color:#fff;border:2px solid #fff;font-size:25px;font-weight:700;box-shadow:0 6px 16px rgba(0,0,0,.35);cursor:pointer;padding:0">↑</button>
+<script>
+(function(){var b=document.getElementById('toTop');if(!b)return;function upd(){b.style.display=window.scrollY>500?'block':'none'}window.addEventListener('scroll',upd,{passive:true});b.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'})});upd()})();
+</script>
 </body>
 </html>
