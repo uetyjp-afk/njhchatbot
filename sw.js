@@ -1,5 +1,5 @@
 // Service Worker for NJH 業務アシスト
-const CACHE_NAME = 'njh-assist-v9';
+const CACHE_NAME = 'njh-assist-v10';
 const ASSETS = [
   './',
   './index.html',
