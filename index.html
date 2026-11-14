@@ -609,12 +609,13 @@
             <option value="order_ric">注文書：耳かけ型（RIC / BTE）</option>
             <option value="repair">依頼書：修理・再作・保証関連</option>
             <option value="catalog">カタログ：総合カタログ・パーツ・支援法</option>
-            <option value="manual">お客様用：かんたんガイド（タイプ別）</option>
+            <option value="manual">お客様用：調整かんたんガイド（タイプ別）</option>
             <option value="trouble">調整・サポート：ペアリング・トラブル対応</option>
             <option value="wireless_guide">アクセサリーワイヤレスガイド</option>
         </select>
     </div>
 
+    <div id="stepArrow" style="display:none;text-align:center;font-size:36px;line-height:1.1;color:#0a4630;padding:6px 0 0" aria-hidden="true">↓</div>
     <div class="step hidden" id="step2">
         <h2><span class="step-num">2</span> 具体的なファイルを選んでください</h2>
         <select id="questionSelect">
@@ -766,14 +767,14 @@
         },
         "manual": {
             "q1": {
-                text: "タイプ別 かんたんガイド（お客様お渡し用）",
+                text: "タイプ別 調整かんたんガイド（お客様お渡し用）",
                 answer: `<div class="note">お客様にお渡しする印刷用データです</div>
-                    <a href="${BASE}/uploads/RIC%E7%94%A8%E3%81%8B%E3%82%93%E3%81%9F%E3%82%93%E3%82%AC%E3%82%A4%E3%83%89_1.pdf" target="_blank" rel="noopener">RIC用 かんたんガイド</a>
-                    <a href="${BASE}/uploads/BTE%E7%94%A8%E3%81%8B%E3%82%93%E3%81%9F%E3%82%93%E3%82%AC%E3%82%A4%E3%83%89.pdf" target="_blank" rel="noopener">BTE用 かんたんガイド</a>
-                    <a href="${BASE}/uploads/%E8%80%B3%E3%81%82%E3%81%AA%E5%9E%8B%E3%81%8B%E3%82%93%E3%81%9F%E3%82%93%E3%82%AC%E3%82%A4%E3%83%89.pdf" target="_blank" rel="noopener">耳あな用 かんたんガイド</a>`
+                    <a href="${BASE}/uploads/RIC%E7%94%A8%E3%81%8B%E3%82%93%E3%81%9F%E3%82%93%E3%82%AC%E3%82%A4%E3%83%89_1.pdf" target="_blank" rel="noopener">RIC用 調整かんたんガイド</a>
+                    <a href="${BASE}/uploads/BTE%E7%94%A8%E3%81%8B%E3%82%93%E3%81%9F%E3%82%93%E3%82%AC%E3%82%A4%E3%83%89.pdf" target="_blank" rel="noopener">BTE用 調整かんたんガイド</a>
+                    <a href="${BASE}/uploads/%E8%80%B3%E3%81%82%E3%81%AA%E5%9E%8B%E3%81%8B%E3%82%93%E3%81%9F%E3%82%93%E3%82%AC%E3%82%A4%E3%83%89.pdf" target="_blank" rel="noopener">耳あな用 調整かんたんガイド</a>`
             },
             "q2": {
-                text: "機種別 かんたんガイド（Beltone）",
+                text: "機種別 調整かんたんガイド（Beltone）",
                 answer: `<a href="${BASE}/uploads/202604_BoostMax_S_Kantan_Guide.pdf" target="_blank" rel="noopener">Beltone Boost Max S</a>
                     <a href="${BASE}/uploads/202508_Envision_Kantan_guide.pdf" target="_blank" rel="noopener">Beltone Envision RIC</a>
                     <a href="${BASE}/uploads/202508_Commence_kantan_guide.pdf" target="_blank" rel="noopener">Beltone Commence RIC</a>
@@ -784,7 +785,7 @@
                     <a href="${BASE}/uploads/202404_Amaze_Plemium_usbc_kantan_guide.pdf" target="_blank" rel="noopener">Beltone Amaze RIC</a>`
             },
             "q3": {
-                text: "機種別 かんたんガイド（Unitron）",
+                text: "機種別 調整かんたんガイド（Unitron）",
                 answer: `<a href="${BASE}/uploads/202604_Insera_S-R_Kantan_Guide.pdf" target="_blank" rel="noopener">Unitron Insera Smile R</a>
                     <a href="${BASE}/uploads/202608_Moxi_Smile_R_chargerGO_kantan_guide.pdf" target="_blank" rel="noopener">Unitron Moxi Smile R (ChargerGo用)</a>
                     <a href="${BASE}/uploads/202606_Moxi_Smile_R_kantan_guide.pdf" target="_blank" rel="noopener">Unitron Moxi Smile R (蓄電なし)</a>
@@ -899,6 +900,23 @@
     const step2 = document.getElementById('step2');
     const answerBox = document.getElementById('answerBox');
     const answerText = document.getElementById('answerText');
+    const stepArrow = document.getElementById('stepArrow');
+    let arrowTimer = null;
+    function guideArrow() {
+        if (!stepArrow) return;
+        stepArrow.style.display = 'block';
+        if (stepArrow._anim) stepArrow._anim.cancel();
+        if (stepArrow.animate) stepArrow._anim = stepArrow.animate([{opacity: 1}, {opacity: .1}, {opacity: 1}], {duration: 450, iterations: 6});
+        clearTimeout(arrowTimer);
+        arrowTimer = setTimeout(() => { stepArrow.style.display = 'none'; }, 2850);
+    }
+    function hideArrow() {
+        if (!stepArrow) return;
+        clearTimeout(arrowTimer);
+        if (stepArrow._anim) stepArrow._anim.cancel();
+        stepArrow.style.display = 'none';
+    }
+
 
     categorySelect.addEventListener('change', function() {
         const category = this.value;
@@ -913,12 +931,15 @@
                 questionSelect.appendChild(option);
             }
             step2.classList.remove('hidden');
+            guideArrow();
         } else {
             step2.classList.add('hidden');
+            hideArrow();
         }
     });
 
     questionSelect.addEventListener('change', function() {
+        hideArrow();
         const category = categorySelect.value;
         const questionKey = this.value;
 
@@ -932,6 +953,7 @@
 
     function resetApp() {
         categorySelect.value = "";
+        hideArrow();
         step2.classList.add('hidden');
         answerBox.classList.add('hidden');
         questionSelect.innerHTML = '<option value="">-- 選択してください --</option>';
